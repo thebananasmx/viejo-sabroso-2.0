@@ -1,15 +1,89 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
-import { useRealtimeOrders } from "../hooks/useRealtimeOrders";
-import { updateOrderStatus } from "../lib/firestore";
 import { Order, OrderStatus } from "../types";
 import { toast } from "sonner";
 
 type FilterStatus = "todos" | "nuevo" | "en-preparacion" | "listo";
 
+// Mock orders for demonstration
+const mockOrders: Order[] = [
+  {
+    id: "1",
+    customerName: "Juan Pérez",
+    tableNumber: "5",
+    items: [
+      {
+        menuItem: {
+          id: "1",
+          name: "Tacos al Pastor",
+          description:
+            "Deliciosos tacos con carne al pastor, piña y salsa verde",
+          price: 85.0,
+          category: "comida",
+          available: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        quantity: 3,
+      },
+      {
+        menuItem: {
+          id: "4",
+          name: "Agua de Horchata",
+          description: "Refrescante agua de horchata casera",
+          price: 35.0,
+          category: "bebidas",
+          available: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        quantity: 1,
+      },
+    ],
+    total: 290.0,
+    status: "nuevo",
+    createdAt: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
+    updatedAt: new Date(),
+  },
+  {
+    id: "2",
+    customerName: "María González",
+    tableNumber: "2",
+    items: [
+      {
+        menuItem: {
+          id: "3",
+          name: "Pozole Rojo",
+          description: "Tradicional pozole rojo con cerdo y acompañamientos",
+          price: 120.0,
+          category: "comida",
+          available: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        quantity: 1,
+      },
+    ],
+    total: 120.0,
+    status: "en-preparacion",
+    createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+    updatedAt: new Date(),
+  },
+];
+
 function Kitchen() {
-  const { orders, stats, loading, error } = useRealtimeOrders();
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("todos");
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat("es-ES", {
@@ -89,7 +163,17 @@ function Kitchen() {
     if (!nextStatus) return;
 
     try {
-      await updateOrderStatus(orderId, nextStatus);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId
+            ? { ...order, status: nextStatus, updatedAt: new Date() }
+            : order,
+        ),
+      );
+
       toast.success(
         `Pedido marcado como ${getStatusText(nextStatus).toLowerCase()}`,
       );
@@ -100,37 +184,18 @@ function Kitchen() {
   };
 
   const filteredOrders = orders.filter((order) => {
-    if (activeFilter === "todos") return true;
+    if (activeFilter === "todos") return order.status !== "entregado";
     return order.status === activeFilter;
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando pedidos...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Calculate order statistics
+  const stats = {
+    total: orders.filter((order) => order.status !== "entregado").length,
+    nuevo: orders.filter((order) => order.status === "nuevo").length,
+    enPreparacion: orders.filter((order) => order.status === "en-preparacion")
+      .length,
+    listo: orders.filter((order) => order.status === "listo").length,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -158,7 +223,7 @@ function Kitchen() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-gray-500" />
               <span className="text-sm text-gray-600">
-                {formatTime(new Date())}
+                {formatTime(currentTime)}
               </span>
             </div>
           </div>
