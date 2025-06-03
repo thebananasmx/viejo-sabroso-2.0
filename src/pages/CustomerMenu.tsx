@@ -1,8 +1,104 @@
 import { useState, useEffect } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
-import { MenuItem, CartItem, MenuCategory } from "../types";
-import { subscribeToMenuItems, addOrder } from "../lib/firestore";
-import { toast } from "sonner";
+
+// Type definitions inline to avoid import issues
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: "comida" | "bebidas" | "postres";
+  imageUrl?: string;
+  available: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface CartItem {
+  menuItem: MenuItem;
+  quantity: number;
+}
+
+// Mock data - will be replaced with Firebase once imports are fixed
+const mockMenuItems: MenuItem[] = [
+  {
+    id: "1",
+    name: "Tacos al Pastor",
+    description: "Deliciosos tacos con carne al pastor, piña y salsa verde",
+    price: 85.0,
+    category: "comida",
+    available: true,
+    imageUrl: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "2",
+    name: "Quesadilla de Flor de Calabaza",
+    description: "Quesadilla artesanal con flor de calabaza y queso oaxaca",
+    price: 65.0,
+    category: "comida",
+    available: true,
+    imageUrl: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "3",
+    name: "Pozole Rojo",
+    description: "Tradicional pozole rojo con cerdo y acompañamientos",
+    price: 120.0,
+    category: "comida",
+    available: true,
+    imageUrl: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "4",
+    name: "Agua de Horchata",
+    description: "Refrescante agua de horchata casera",
+    price: 35.0,
+    category: "bebidas",
+    available: true,
+    imageUrl: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "5",
+    name: "Agua de Jamaica",
+    description: "Agua fresca de flor de jamaica",
+    price: 30.0,
+    category: "bebidas",
+    available: true,
+    imageUrl: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "6",
+    name: "Flan Napolitano",
+    description: "Flan casero con caramelo tradicional",
+    price: 45.0,
+    category: "postres",
+    available: true,
+    imageUrl: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "7",
+    name: "Tres Leches",
+    description: "Pastel tres leches con canela",
+    price: 55.0,
+    category: "postres",
+    available: true,
+    imageUrl: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
 
 const categories = [
   { key: "comida", label: "Comida" },
@@ -11,31 +107,26 @@ const categories = [
 ];
 
 function CustomerMenu() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(mockMenuItems);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [selectedCategory, setSelectedCategory] =
-    useState<MenuCategory>("comida");
+  const [selectedCategory, setSelectedCategory] = useState<
+    "comida" | "bebidas" | "postres"
+  >("comida");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
+  // TODO: Replace with Firebase connection once imports are fixed
   useEffect(() => {
-    console.log("🔥 Conectando con Firebase para obtener productos...");
-
-    const unsubscribe = subscribeToMenuItems((items) => {
-      console.log("📦 Productos recibidos de Firebase:", items.length);
-      setMenuItems(items.filter((item) => item.available));
-      setLoading(false);
-      setError(null);
-    });
-
-    return unsubscribe;
+    console.log(
+      "📦 Usando datos mock - Firebase se conectará después de corregir importaciones",
+    );
+    setLoading(false);
   }, []);
 
   const filteredItems = menuItems.filter(
-    (item) => item.category === selectedCategory,
+    (item) => item.category === selectedCategory && item.available,
   );
   const cartItemsCount = cartItems.reduce(
     (sum, item) => sum + item.quantity,
@@ -70,23 +161,15 @@ function CustomerMenu() {
       return [...prev, { menuItem, quantity: 1 }];
     });
 
-    toast.success(`${menuItem.name} agregado al carrito`, {
-      description: `${formatPrice(menuItem.price)} - ${cartItemsCount + 1} producto(s) en el carrito`,
-      duration: 2000,
-    });
+    // Simple notification
+    console.log(`${menuItem.name} agregado al carrito!`);
   };
 
   const updateCartQuantity = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      const item = cartItems.find((item) => item.menuItem.id === itemId);
       setCartItems((prev) =>
         prev.filter((item) => item.menuItem.id !== itemId),
       );
-      if (item) {
-        toast.info(`${item.menuItem.name} eliminado del carrito`, {
-          duration: 2000,
-        });
-      }
       return;
     }
 
@@ -98,101 +181,38 @@ function CustomerMenu() {
   };
 
   const removeFromCart = (itemId: string) => {
-    const item = cartItems.find((item) => item.menuItem.id === itemId);
     setCartItems((prev) => prev.filter((item) => item.menuItem.id !== itemId));
-    if (item) {
-      toast.info(`${item.menuItem.name} eliminado del carrito`, {
-        duration: 2000,
-      });
-    }
   };
 
   const placeOrder = async () => {
     if (!customerName.trim() || cartItems.length === 0) {
-      toast.error("Por favor ingresa tu nombre y agrega productos al carrito", {
-        description: "Todos los campos marcados con * son obligatorios",
-        duration: 4000,
-      });
+      alert("Por favor ingresa tu nombre y agrega productos al carrito");
       return;
     }
 
-    const loadingToast = toast.loading("Realizando pedido...", {
-      description: "Enviando tu pedido al sistema",
-    });
-
     try {
-      await addOrder({
+      // TODO: Replace with Firebase addOrder once imports are fixed
+      console.log("Pedido realizado (modo demo):", {
         customerName: customerName.trim(),
         tableNumber: tableNumber.trim() || undefined,
         items: cartItems,
         total: cartTotal,
+        timestamp: new Date().toISOString(),
       });
+
+      alert(
+        `¡Pedido realizado con éxito!\nTotal: ${formatPrice(cartTotal)}\nCliente: ${customerName}`,
+      );
 
       setCartItems([]);
       setCustomerName("");
       setTableNumber("");
       setIsCartOpen(false);
-
-      toast.dismiss(loadingToast);
-      toast.success("¡Pedido realizado con éxito!", {
-        description: `Total: ${formatPrice(cartTotal)} - El personal de cocina ha sido notificado`,
-        duration: 5000,
-      });
     } catch (error) {
       console.error("Error placing order:", error);
-      toast.dismiss(loadingToast);
-      toast.error("Error al realizar el pedido", {
-        description: "Por favor inténtalo de nuevo",
-        duration: 4000,
-      });
+      alert("Error al realizar el pedido. Inténtalo de nuevo.");
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div
-            className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold"
-            style={{ backgroundColor: "#FF7518" }}
-          >
-            🍽️
-          </div>
-          <div
-            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4"
-            style={{ borderColor: "#FF7518" }}
-          ></div>
-          <p className="text-gray-600">Cargando menú desde Firebase...</p>
-          <p className="text-sm text-gray-400 mt-2">
-            Conectando con base de datos
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-red-600 text-2xl">⚠️</span>
-          </div>
-          <h2 className="text-xl font-bold text-red-600 mb-2">
-            Error de Conexión
-          </h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded text-white transition-colors hover:opacity-90"
-            style={{ backgroundColor: "#FF7518" }}
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -237,7 +257,11 @@ function CustomerMenu() {
             return (
               <button
                 key={category.key}
-                onClick={() => setSelectedCategory(category.key)}
+                onClick={() =>
+                  setSelectedCategory(
+                    category.key as "comida" | "bebidas" | "postres",
+                  )
+                }
                 className={`whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-md transition-colors ${
                   selectedCategory === category.key
                     ? "text-white"
@@ -264,20 +288,16 @@ function CustomerMenu() {
               <span className="text-2xl">🍽️</span>
             </div>
             <p className="text-gray-500 mb-4">
-              {menuItems.length === 0
-                ? "No hay productos en el menú. Ve al panel de administración para agregar productos."
-                : "No hay productos disponibles en esta categoría"}
+              No hay productos disponibles en esta categoría
             </p>
-            {menuItems.length === 0 && (
-              <a
-                href="/admin-menu"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
-                style={{ backgroundColor: "#FF7518" }}
-              >
-                <span className="text-lg">⚙️</span>
-                Ir a Administración
-              </a>
-            )}
+            <a
+              href="/admin-menu"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
+              style={{ backgroundColor: "#FF7518" }}
+            >
+              <span className="text-lg">⚙️</span>
+              Ir a Administración
+            </a>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -450,7 +470,7 @@ function CustomerMenu() {
                         className="w-full px-4 py-3 rounded text-white font-medium transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ backgroundColor: "#FF7518" }}
                       >
-                        Realizar Pedido
+                        Realizar Pedido (Demo)
                       </button>
                     </div>
                   </div>
