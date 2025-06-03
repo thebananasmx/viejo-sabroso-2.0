@@ -58,9 +58,9 @@ export default function AdminMenu() {
       : menuItems.filter((item) => item.category === selectedCategory);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-ES", {
+    return new Intl.NumberFormat("es-MX", {
       style: "currency",
-      currency: "EUR",
+      currency: "MXN",
     }).format(price);
   };
 
@@ -417,7 +417,7 @@ export default function AdminMenu() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Precio (€) *
+                  Precio ($MX) *
                 </label>
                 <input
                   type="number"

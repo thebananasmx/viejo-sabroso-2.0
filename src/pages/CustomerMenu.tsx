@@ -41,9 +41,9 @@ export default function CustomerMenu() {
   );
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-ES", {
+    return new Intl.NumberFormat("es-MX", {
       style: "currency",
-      currency: "EUR",
+      currency: "MXN",
     }).format(price);
   };
 
