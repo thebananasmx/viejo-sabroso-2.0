@@ -1,13 +1,84 @@
 import { useState } from "react";
 import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
-import { useRealtimeMenuItems } from "../hooks/useRealtimeMenuItems";
-import { addMenuItem, updateMenuItem, deleteMenuItem } from "../lib/firestore";
 import { MenuItem } from "../types";
 import { toast } from "sonner";
-import { DevTools } from "../components/DevTools";
+
+// Mock data
+const initialMockMenuItems: MenuItem[] = [
+  {
+    id: "1",
+    name: "Tacos al Pastor",
+    description: "Deliciosos tacos con carne al pastor, piña y salsa verde",
+    price: 85.0,
+    category: "comida",
+    available: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "2",
+    name: "Quesadilla de Flor de Calabaza",
+    description: "Quesadilla artesanal con flor de calabaza y queso oaxaca",
+    price: 65.0,
+    category: "comida",
+    available: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "3",
+    name: "Pozole Rojo",
+    description: "Tradicional pozole rojo con cerdo y acompañamientos",
+    price: 120.0,
+    category: "comida",
+    available: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "4",
+    name: "Agua de Horchata",
+    description: "Refrescante agua de horchata casera",
+    price: 35.0,
+    category: "bebidas",
+    available: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "5",
+    name: "Agua de Jamaica",
+    description: "Agua fresca de flor de jamaica",
+    price: 30.0,
+    category: "bebidas",
+    available: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "6",
+    name: "Flan Napolitano",
+    description: "Flan casero con caramelo tradicional",
+    price: 45.0,
+    category: "postres",
+    available: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "7",
+    name: "Tres Leches",
+    description: "Pastel tres leches con canela",
+    price: 55.0,
+    category: "postres",
+    available: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
 
 function AdminMenu() {
-  const { menuItems, loading, error } = useRealtimeMenuItems();
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMockMenuItems);
   const [activeCategory, setActiveCategory] = useState<
     MenuItem["category"] | "todos"
   >("todos");
@@ -37,7 +108,17 @@ function AdminMenu() {
   ) => {
     setIsSubmitting(true);
     try {
-      await addMenuItem(itemData);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const newItem: MenuItem = {
+        ...itemData,
+        id: Date.now().toString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      setMenuItems((prev) => [...prev, newItem]);
       toast.success("Producto agregado con éxito");
       setShowAddModal(false);
     } catch (error) {
@@ -51,7 +132,17 @@ function AdminMenu() {
   const handleUpdateItem = async (id: string, updates: Partial<MenuItem>) => {
     setIsSubmitting(true);
     try {
-      await updateMenuItem(id, updates);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setMenuItems((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? { ...item, ...updates, updatedAt: new Date() }
+            : item,
+        ),
+      );
+
       toast.success("Producto actualizado con éxito");
       setEditingItem(null);
     } catch (error) {
@@ -66,7 +157,10 @@ function AdminMenu() {
     if (!confirm(`¿Estás seguro de que quieres eliminar "${name}"?`)) return;
 
     try {
-      await deleteMenuItem(id);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      setMenuItems((prev) => prev.filter((item) => item.id !== id));
       toast.success("Producto eliminado con éxito");
     } catch (error) {
       console.error("Error deleting item:", error);
@@ -76,7 +170,21 @@ function AdminMenu() {
 
   const handleToggleAvailability = async (item: MenuItem) => {
     try {
-      await updateMenuItem(item.id, { available: !item.available });
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      setMenuItems((prev) =>
+        prev.map((menuItem) =>
+          menuItem.id === item.id
+            ? {
+                ...menuItem,
+                available: !menuItem.available,
+                updatedAt: new Date(),
+              }
+            : menuItem,
+        ),
+      );
+
       toast.success(`Producto ${!item.available ? "activado" : "desactivado"}`);
     } catch (error) {
       console.error("Error toggling availability:", error);
@@ -91,37 +199,8 @@ function AdminMenu() {
     { key: "postres" as const, label: "Postres", icon: "🍰" },
   ];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando menú...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <DevTools />
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-4 py-4">
