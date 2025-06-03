@@ -20,40 +20,43 @@ const ORDERS_COLLECTION = "orders";
 
 // Menu Items
 export const getMenuItems = async (): Promise<MenuItem[]> => {
-  const querySnapshot = await getDocs(
-    query(
-      collection(db, MENU_COLLECTION),
-      orderBy("category"),
-      orderBy("name"),
-    ),
-  );
+  const querySnapshot = await getDocs(collection(db, MENU_COLLECTION));
 
-  return querySnapshot.docs.map((doc) => ({
+  const items = querySnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
     createdAt: doc.data().createdAt?.toDate() || new Date(),
     updatedAt: doc.data().updatedAt?.toDate() || new Date(),
   })) as MenuItem[];
+
+  // Sort by category first, then by name on the client side
+  return items.sort((a, b) => {
+    if (a.category !== b.category) {
+      return a.category.localeCompare(b.category);
+    }
+    return a.name.localeCompare(b.name);
+  });
 };
 
 export const subscribeToMenuItems = (callback: (items: MenuItem[]) => void) => {
-  return onSnapshot(
-    query(
-      collection(db, MENU_COLLECTION),
-      orderBy("category"),
-      orderBy("name"),
-    ),
-    (querySnapshot) => {
-      const items = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-      })) as MenuItem[];
+  return onSnapshot(collection(db, MENU_COLLECTION), (querySnapshot) => {
+    const items = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    })) as MenuItem[];
 
-      callback(items);
-    },
-  );
+    // Sort by category first, then by name on the client side
+    const sortedItems = items.sort((a, b) => {
+      if (a.category !== b.category) {
+        return a.category.localeCompare(b.category);
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    callback(sortedItems);
+  });
 };
 
 export const addMenuItem = async (
@@ -121,7 +124,7 @@ export const subscribeToOrders = (callback: (orders: Order[]) => void) => {
       updatedAt: doc.data().updatedAt?.toDate() || new Date(),
     })) as Order[];
 
-    // Filter and sort on the client side
+    // Filter and sort on the client side to avoid composite index requirements
     const filteredOrders = allOrders
       .filter((order) =>
         ["nuevo", "en-preparacion", "listo"].includes(order.status),
