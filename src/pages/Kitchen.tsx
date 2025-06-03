@@ -394,9 +394,10 @@ export default function Kitchen() {
                       : {}
                   }
                 >
-                  <div className="p-4 pb-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full" style={{ backgroundColor: 'rgba(255, 117, 24, 0.1)' }}>
+                <span className="text-2xl" style={{ opacity: 1 }}>👨‍🍳</span>
+              </div>
                         <span
                           className="px-3 py-1 rounded text-white text-sm font-medium"
                           style={{
