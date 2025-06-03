@@ -113,40 +113,39 @@ export const updateOrderStatus = async (
 };
 
 export const subscribeToOrders = (callback: (orders: Order[]) => void) => {
-  return onSnapshot(
-    query(
-      collection(db, ORDERS_COLLECTION),
-      where("status", "in", ["nuevo", "en-preparacion", "listo"]),
-      orderBy("createdAt", "desc"),
-    ),
-    (querySnapshot) => {
-      const orders = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-      })) as Order[];
+  return onSnapshot(collection(db, ORDERS_COLLECTION), (querySnapshot) => {
+    const allOrders = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    })) as Order[];
 
-      callback(orders);
-    },
-  );
+    // Filter and sort on the client side
+    const filteredOrders = allOrders
+      .filter((order) =>
+        ["nuevo", "en-preparacion", "listo"].includes(order.status),
+      )
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    callback(filteredOrders);
+  });
 };
 
 export const getOrdersByStatus = async (
   status: OrderStatus,
 ): Promise<Order[]> => {
-  const querySnapshot = await getDocs(
-    query(
-      collection(db, ORDERS_COLLECTION),
-      where("status", "==", status),
-      orderBy("createdAt", "desc"),
-    ),
-  );
+  const querySnapshot = await getDocs(collection(db, ORDERS_COLLECTION));
 
-  return querySnapshot.docs.map((doc) => ({
+  const allOrders = querySnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
     createdAt: doc.data().createdAt?.toDate() || new Date(),
     updatedAt: doc.data().updatedAt?.toDate() || new Date(),
   })) as Order[];
+
+  // Filter and sort on the client side
+  return allOrders
+    .filter((order) => order.status === status)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 };
