@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { getMenuItems } from "@/lib/firestore";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -14,9 +13,8 @@ const Index = () => {
       try {
         console.log("🔥 Validando conexión con Firebase...");
 
-        // Test Firebase connection by trying to read from Firestore
-        const testCollection = collection(db, "menu_items");
-        await getDocs(testCollection);
+        // Test Firebase connection using our existing function
+        await getMenuItems();
 
         console.log("✅ Firebase conectado correctamente");
         setFirebaseConnected(true);
