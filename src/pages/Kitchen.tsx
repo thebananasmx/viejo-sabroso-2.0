@@ -48,83 +48,96 @@ export default function Kitchen() {
     "todos",
   );
   const [loading, setLoading] = useState(true);
-  const [lastOrderCount, setLastOrderCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [previousOrders, setPreviousOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const unsubscribe = subscribeToOrders((newOrders) => {
-      // Check for new orders
-      if (previousOrders.length > 0) {
-        const newOrderIds = newOrders.map((o) => o.id);
-        const previousOrderIds = previousOrders.map((o) => o.id);
-        const addedOrders = newOrders.filter(
-          (order) => !previousOrderIds.includes(order.id),
-        );
+    let unsubscribe: (() => void) | null = null;
 
-        // Check for status changes
-        newOrders.forEach((newOrder) => {
-          const previousOrder = previousOrders.find(
-            (o) => o.id === newOrder.id,
-          );
-          if (previousOrder && previousOrder.status !== newOrder.status) {
-            // Status changed notification
-            const customerInfo = newOrder.tableNumber
-              ? `${newOrder.customerName} - Mesa ${newOrder.tableNumber}`
-              : newOrder.customerName;
+    try {
+      unsubscribe = subscribeToOrders((newOrders) => {
+        try {
+          // Check for new orders and status changes
+          if (previousOrders.length > 0) {
+            const addedOrders = newOrders.filter(
+              (order) =>
+                !previousOrders.some((prevOrder) => prevOrder.id === order.id),
+            );
 
-            switch (newOrder.status) {
-              case "en-preparacion":
-                toast.info("Pedido en preparación", {
-                  description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
-                  icon: <ChefHat className="h-4 w-4" />,
-                  duration: 3000,
+            // Check for status changes
+            newOrders.forEach((newOrder) => {
+              const previousOrder = previousOrders.find(
+                (o) => o.id === newOrder.id,
+              );
+              if (previousOrder && previousOrder.status !== newOrder.status) {
+                // Status changed notification
+                const customerInfo = newOrder.tableNumber
+                  ? `${newOrder.customerName} - Mesa ${newOrder.tableNumber}`
+                  : newOrder.customerName;
+
+                switch (newOrder.status) {
+                  case "en-preparacion":
+                    toast.info("Pedido en preparación", {
+                      description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
+                      icon: <ChefHat className="h-4 w-4" />,
+                      duration: 3000,
+                    });
+                    break;
+                  case "listo":
+                    toast.success("Pedido listo para entregar", {
+                      description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
+                      icon: <CheckCircle className="h-4 w-4" />,
+                      duration: 4000,
+                    });
+                    break;
+                  case "entregado":
+                    toast("Pedido entregado", {
+                      description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
+                      duration: 3000,
+                    });
+                    break;
+                }
+              }
+            });
+
+            // Show notification for new orders
+            if (addedOrders.length > 0) {
+              addedOrders.forEach((order) => {
+                const customerInfo = order.tableNumber
+                  ? `${order.customerName} - Mesa ${order.tableNumber}`
+                  : order.customerName;
+
+                toast.error("¡Nuevo pedido recibido!", {
+                  description: `${customerInfo} - ${formatPrice(order.total)}`,
+                  icon: <AlertCircle className="h-4 w-4" />,
+                  duration: 6000,
                 });
-                break;
-              case "listo":
-                toast.success("Pedido listo para entregar", {
-                  description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
-                  icon: <CheckCircle className="h-4 w-4" />,
-                  duration: 4000,
-                });
-                break;
-              case "entregado":
-                toast("Pedido entregado", {
-                  description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
-                  duration: 3000,
-                });
-                break;
+              });
             }
           }
-        });
 
-        // Show notification for new orders
-        if (addedOrders.length > 0) {
-          addedOrders.forEach((order) => {
-            const customerInfo = order.tableNumber
-              ? `${order.customerName} - Mesa ${order.tableNumber}`
-              : order.customerName;
-
-            toast.error("¡Nuevo pedido recibido!", {
-              description: `${customerInfo} - ${formatPrice(order.total)}`,
-              icon: <AlertCircle className="h-4 w-4" />,
-              duration: 6000,
-            });
-          });
+          setPreviousOrders([...newOrders]); // Create new array to avoid reference issues
+          setOrders(newOrders);
+          setLoading(false);
+          setError(null);
+        } catch (err) {
+          console.error("Error processing orders:", err);
+          setError("Error procesando pedidos");
+          setLoading(false);
         }
-      }
-
-      setPreviousOrders(newOrders);
-      setOrders(newOrders);
+      });
+    } catch (err) {
+      console.error("Error setting up orders subscription:", err);
+      setError("Error conectando con Firebase");
       setLoading(false);
+    }
 
-      const newOrdersCount = newOrders.filter(
-        (order) => order.status === "nuevo",
-      ).length;
-      setLastOrderCount(newOrdersCount);
-    });
-
-    return unsubscribe;
-  }, [previousOrders]);
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []); // Removed previousOrders dependency to avoid infinite loop
 
   const filteredOrders =
     selectedFilter === "todos"
@@ -195,7 +208,33 @@ export default function Kitchen() {
             className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4"
             style={{ borderColor: "#FF7518" }}
           ></div>
-          <p className="text-gray-600">Cargando pedidos desde Firebase...</p>
+          <p className="text-gray-600">Conectando con Firebase...</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Cargando pedidos en tiempo real
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <p className="text-red-600 font-medium mb-2">{error}</p>
+          <p className="text-gray-500 text-sm mb-4">
+            Verifica tu conexión a internet
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: "#FF7518" }}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
