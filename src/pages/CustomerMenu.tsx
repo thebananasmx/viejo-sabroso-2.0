@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
 import { MenuItem, CartItem, MenuCategory } from "@/types";
 import { subscribeToMenuItems, addOrder } from "@/lib/firestore";
+import { toast } from "sonner";
 
 const categories = [
   { key: "comida", label: "Comida" },
@@ -64,14 +65,23 @@ export default function CustomerMenu() {
       return [...prev, { menuItem, quantity: 1 }];
     });
 
-    alert(`${menuItem.name} agregado al carrito!`);
+    toast.success(`${menuItem.name} agregado al carrito`, {
+      description: `${formatPrice(menuItem.price)} - ${cartItemsCount + 1} producto(s) en el carrito`,
+      duration: 2000,
+    });
   };
 
   const updateCartQuantity = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
+      const item = cartItems.find((item) => item.menuItem.id === itemId);
       setCartItems((prev) =>
         prev.filter((item) => item.menuItem.id !== itemId),
       );
+      if (item) {
+        toast.info(`${item.menuItem.name} eliminado del carrito`, {
+          duration: 2000,
+        });
+      }
       return;
     }
 
@@ -83,14 +93,27 @@ export default function CustomerMenu() {
   };
 
   const removeFromCart = (itemId: string) => {
+    const item = cartItems.find((item) => item.menuItem.id === itemId);
     setCartItems((prev) => prev.filter((item) => item.menuItem.id !== itemId));
+    if (item) {
+      toast.info(`${item.menuItem.name} eliminado del carrito`, {
+        duration: 2000,
+      });
+    }
   };
 
   const placeOrder = async () => {
     if (!customerName.trim() || cartItems.length === 0) {
-      alert("Por favor ingresa tu nombre y agrega productos al carrito");
+      toast.error("Por favor ingresa tu nombre y agrega productos al carrito", {
+        description: "Todos los campos marcados con * son obligatorios",
+        duration: 4000,
+      });
       return;
     }
+
+    const loadingToast = toast.loading("Realizando pedido...", {
+      description: "Enviando tu pedido al sistema",
+    });
 
     try {
       await addOrder({
@@ -104,12 +127,19 @@ export default function CustomerMenu() {
       setCustomerName("");
       setTableNumber("");
       setIsCartOpen(false);
-      alert(
-        "¡Pedido realizado con éxito! El personal de cocina ha sido notificado.",
-      );
+
+      toast.dismiss(loadingToast);
+      toast.success("¡Pedido realizado con éxito!", {
+        description: `Total: ${formatPrice(cartTotal)} - El personal de cocina ha sido notificado`,
+        duration: 5000,
+      });
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("Error al realizar el pedido. Inténtalo de nuevo.");
+      toast.dismiss(loadingToast);
+      toast.error("Error al realizar el pedido", {
+        description: "Por favor inténtalo de nuevo",
+        duration: 4000,
+      });
     }
   };
 

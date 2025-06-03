@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Eye,
+  EyeOff,
+  Package,
+  PackageCheck,
+  PackageX,
+} from "lucide-react";
 import { MenuItem, MenuCategory } from "@/types";
 import {
   subscribeToMenuItems,
@@ -7,6 +16,7 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from "@/lib/firestore";
+import { toast } from "sonner";
 
 const categories: { value: MenuCategory; label: string }[] = [
   { value: "comida", label: "Comida" },
@@ -93,24 +103,43 @@ export default function AdminMenu() {
     if (!formData.name.trim() || formData.price <= 0 || isSubmitting) return;
 
     setIsSubmitting(true);
+    const loadingToast = toast.loading(
+      editingItem ? "Actualizando producto..." : "Agregando producto...",
+      { description: "Guardando cambios en Firebase" },
+    );
+
     try {
       if (editingItem) {
         await updateMenuItem(editingItem.id, {
           ...formData,
           imageUrl: formData.imageUrl || undefined,
         });
-        alert("Producto actualizado correctamente");
+        toast.dismiss(loadingToast);
+        toast.success("Producto actualizado correctamente", {
+          description: `${formData.name} - ${formatPrice(formData.price)}`,
+          icon: <Package className="h-4 w-4" />,
+          duration: 3000,
+        });
       } else {
         await addMenuItem({
           ...formData,
           imageUrl: formData.imageUrl || undefined,
         });
-        alert("Producto agregado correctamente");
+        toast.dismiss(loadingToast);
+        toast.success("Producto agregado al menú", {
+          description: `${formData.name} - ${formatPrice(formData.price)}`,
+          icon: <Plus className="h-4 w-4" />,
+          duration: 3000,
+        });
       }
       handleCloseDialog();
     } catch (error) {
       console.error("Error saving menu item:", error);
-      alert("Error al guardar el producto");
+      toast.dismiss(loadingToast);
+      toast.error("Error al guardar el producto", {
+        description: "Por favor inténtalo de nuevo",
+        duration: 4000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -119,26 +148,59 @@ export default function AdminMenu() {
   const handleDelete = async (item: MenuItem) => {
     if (!confirm(`¿Estás seguro de eliminar "${item.name}"?`)) return;
 
+    const loadingToast = toast.loading("Eliminando producto...", {
+      description: "Removiendo del menú",
+    });
+
     try {
       await deleteMenuItem(item.id);
-      alert("Producto eliminado correctamente");
+      toast.dismiss(loadingToast);
+      toast.success("Producto eliminado", {
+        description: `${item.name} ha sido removido del menú`,
+        icon: <Trash2 className="h-4 w-4" />,
+        duration: 3000,
+      });
     } catch (error) {
       console.error("Error deleting menu item:", error);
-      alert("Error al eliminar el producto");
+      toast.dismiss(loadingToast);
+      toast.error("Error al eliminar el producto", {
+        description: "Por favor inténtalo de nuevo",
+        duration: 4000,
+      });
     }
   };
 
   const handleToggleAvailability = async (item: MenuItem) => {
+    const loadingToast = toast.loading(
+      item.available
+        ? "Marcando como no disponible..."
+        : "Marcando como disponible...",
+    );
+
     try {
       await updateMenuItem(item.id, { available: !item.available });
-      alert(
-        item.available
-          ? "Producto marcado como no disponible"
-          : "Producto marcado como disponible",
-      );
+      toast.dismiss(loadingToast);
+
+      if (item.available) {
+        toast.info("Producto marcado como no disponible", {
+          description: `${item.name} ya no aparecerá en el menú del cliente`,
+          icon: <PackageX className="h-4 w-4" />,
+          duration: 3000,
+        });
+      } else {
+        toast.success("Producto marcado como disponible", {
+          description: `${item.name} ahora aparece en el menú del cliente`,
+          icon: <PackageCheck className="h-4 w-4" />,
+          duration: 3000,
+        });
+      }
     } catch (error) {
       console.error("Error updating availability:", error);
-      alert("Error al actualizar la disponibilidad");
+      toast.dismiss(loadingToast);
+      toast.error("Error al actualizar la disponibilidad", {
+        description: "Por favor inténtalo de nuevo",
+        duration: 4000,
+      });
     }
   };
 

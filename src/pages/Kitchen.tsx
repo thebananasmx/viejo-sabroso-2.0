@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
-import { Clock, User, Hash, AlertCircle } from "lucide-react";
+import {
+  Clock,
+  User,
+  Hash,
+  AlertCircle,
+  CheckCircle,
+  ChefHat,
+} from "lucide-react";
 import { Order, OrderStatus } from "@/types";
 import { subscribeToOrders, updateOrderStatus } from "@/lib/firestore";
+import { toast } from "sonner";
 
 const statusLabels: Record<OrderStatus, string> = {
   nuevo: "Nuevo",
@@ -41,26 +49,82 @@ export default function Kitchen() {
   );
   const [loading, setLoading] = useState(true);
   const [lastOrderCount, setLastOrderCount] = useState(0);
+  const [previousOrders, setPreviousOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     const unsubscribe = subscribeToOrders((newOrders) => {
+      // Check for new orders
+      if (previousOrders.length > 0) {
+        const newOrderIds = newOrders.map((o) => o.id);
+        const previousOrderIds = previousOrders.map((o) => o.id);
+        const addedOrders = newOrders.filter(
+          (order) => !previousOrderIds.includes(order.id),
+        );
+
+        // Check for status changes
+        newOrders.forEach((newOrder) => {
+          const previousOrder = previousOrders.find(
+            (o) => o.id === newOrder.id,
+          );
+          if (previousOrder && previousOrder.status !== newOrder.status) {
+            // Status changed notification
+            const customerInfo = newOrder.tableNumber
+              ? `${newOrder.customerName} - Mesa ${newOrder.tableNumber}`
+              : newOrder.customerName;
+
+            switch (newOrder.status) {
+              case "en-preparacion":
+                toast.info("Pedido en preparación", {
+                  description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
+                  icon: <ChefHat className="h-4 w-4" />,
+                  duration: 3000,
+                });
+                break;
+              case "listo":
+                toast.success("Pedido listo para entregar", {
+                  description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
+                  icon: <CheckCircle className="h-4 w-4" />,
+                  duration: 4000,
+                });
+                break;
+              case "entregado":
+                toast("Pedido entregado", {
+                  description: `${customerInfo} - ${formatPrice(newOrder.total)}`,
+                  duration: 3000,
+                });
+                break;
+            }
+          }
+        });
+
+        // Show notification for new orders
+        if (addedOrders.length > 0) {
+          addedOrders.forEach((order) => {
+            const customerInfo = order.tableNumber
+              ? `${order.customerName} - Mesa ${order.tableNumber}`
+              : order.customerName;
+
+            toast.error("¡Nuevo pedido recibido!", {
+              description: `${customerInfo} - ${formatPrice(order.total)}`,
+              icon: <AlertCircle className="h-4 w-4" />,
+              duration: 6000,
+            });
+          });
+        }
+      }
+
+      setPreviousOrders(newOrders);
       setOrders(newOrders);
       setLoading(false);
 
-      // Check for new orders and show notification
       const newOrdersCount = newOrders.filter(
         (order) => order.status === "nuevo",
       ).length;
-      if (newOrdersCount > lastOrderCount && lastOrderCount > 0) {
-        alert(
-          `¡${newOrdersCount - lastOrderCount} nuevo(s) pedido(s) recibido(s)!`,
-        );
-      }
       setLastOrderCount(newOrdersCount);
     });
 
     return unsubscribe;
-  }, [lastOrderCount]);
+  }, [previousOrders]);
 
   const filteredOrders =
     selectedFilter === "todos"
@@ -89,13 +153,37 @@ export default function Kitchen() {
     }).format(date);
   };
 
-  const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
+  const handleUpdateStatus = async (
+    orderId: string,
+    status: OrderStatus,
+    customerName: string,
+    total: number,
+  ) => {
+    const loadingToast = toast.loading("Actualizando estado del pedido...", {
+      description: "Guardando cambios",
+    });
+
     try {
       await updateOrderStatus(orderId, status);
-      alert("Estado del pedido actualizado correctamente");
+      toast.dismiss(loadingToast);
+
+      const statusMessages = {
+        "en-preparacion": 'Pedido marcado como "En Preparación"',
+        listo: 'Pedido marcado como "Listo"',
+        entregado: 'Pedido marcado como "Entregado"',
+      };
+
+      toast.success("Estado actualizado correctamente", {
+        description: `${statusMessages[status]} - ${customerName}`,
+        duration: 3000,
+      });
     } catch (error) {
       console.error("Error updating order status:", error);
-      alert("Error al actualizar el estado del pedido");
+      toast.dismiss(loadingToast);
+      toast.error("Error al actualizar el estado", {
+        description: "Por favor inténtalo de nuevo",
+        duration: 4000,
+      });
     }
   };
 
@@ -342,7 +430,12 @@ export default function Kitchen() {
                       {nextAction && (
                         <button
                           onClick={() =>
-                            handleUpdateStatus(order.id, nextAction.status)
+                            handleUpdateStatus(
+                              order.id,
+                              nextAction.status,
+                              order.customerName,
+                              order.total,
+                            )
                           }
                           className="px-6 py-2 rounded text-white font-medium transition-colors hover:opacity-90"
                           style={{ backgroundColor: "#FF7518" }}
