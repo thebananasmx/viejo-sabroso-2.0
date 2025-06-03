@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Eye, EyeOff, ShoppingCart } from "lucide-react";
+import { Plus, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 import { MenuItem, MenuCategory } from "@/types";
 import {
   subscribeToMenuItems,
@@ -157,7 +157,7 @@ export default function AdminMenu() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-4 py-4">
@@ -368,7 +368,7 @@ export default function AdminMenu() {
         )}
       </main>
 
-      {/* Add/Edit Form Modal */}
+      {/* Add/Edit Form Modal - Centered horizontally */}
       {isDialogOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -527,34 +527,6 @@ export default function AdminMenu() {
           </div>
         </div>
       )}
-
-      {/* Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 sm:hidden">
-        <div className="flex items-center justify-around py-2">
-          <a
-            href="/menu-cliente"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors text-gray-500 hover:text-gray-700"
-          >
-            <ShoppingCart className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Menú</span>
-          </a>
-          <a
-            href="/cocina"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors text-gray-500 hover:text-gray-700"
-          >
-            <span className="text-lg mb-1">👨‍🍳</span>
-            <span className="text-xs font-medium">Cocina</span>
-          </a>
-          <a
-            href="/admin-menu"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors"
-            style={{ color: "#FF7518" }}
-          >
-            <span className="text-lg mb-1">⚙️</span>
-            <span className="text-xs font-medium">Admin</span>
-          </a>
-        </div>
-      </nav>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, User, Hash, ShoppingCart, AlertCircle } from "lucide-react";
+import { Clock, User, Hash, AlertCircle } from "lucide-react";
 import { Order, OrderStatus } from "@/types";
 import { subscribeToOrders, updateOrderStatus } from "@/lib/firestore";
 
@@ -114,7 +114,7 @@ export default function Kitchen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-4 py-4">
@@ -233,15 +233,14 @@ export default function Kitchen() {
             {orders.length === 0 && (
               <div className="mt-4">
                 <p className="text-sm text-gray-400 mb-2">
-                  Los clientes pueden hacer pedidos desde:
+                  Los clientes pueden hacer pedidos desde el menú principal
                 </p>
                 <a
                   href="/menu-cliente"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
                   style={{ backgroundColor: "#FF7518" }}
                 >
-                  <ShoppingCart className="h-4 w-4" />
-                  Menú de Cliente
+                  🍽️ Menú de Cliente
                 </a>
               </div>
             )}
@@ -359,34 +358,6 @@ export default function Kitchen() {
           </div>
         )}
       </main>
-
-      {/* Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 sm:hidden">
-        <div className="flex items-center justify-around py-2">
-          <a
-            href="/menu-cliente"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors text-gray-500 hover:text-gray-700"
-          >
-            <ShoppingCart className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Menú</span>
-          </a>
-          <a
-            href="/cocina"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors"
-            style={{ color: "#FF7518" }}
-          >
-            <span className="text-lg mb-1">👨‍🍳</span>
-            <span className="text-xs font-medium">Cocina</span>
-          </a>
-          <a
-            href="/admin-menu"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors text-gray-500 hover:text-gray-700"
-          >
-            <span className="text-lg mb-1">⚙️</span>
-            <span className="text-xs font-medium">Admin</span>
-          </a>
-        </div>
-      </nav>
     </div>
   );
 }

@@ -128,7 +128,7 @@ export default function CustomerMenu() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-4 py-4">
@@ -252,10 +252,10 @@ export default function CustomerMenu() {
         )}
       </main>
 
-      {/* Cart Modal */}
+      {/* Cart Modal - Centered horizontally */}
       {isCartOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center sm:justify-center">
-          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-hidden sm:rounded-lg rounded-t-lg">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-hidden rounded-lg">
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
@@ -384,34 +384,6 @@ export default function CustomerMenu() {
           </div>
         </div>
       )}
-
-      {/* Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 sm:hidden">
-        <div className="flex items-center justify-around py-2">
-          <a
-            href="/menu-cliente"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors"
-            style={{ color: "#FF7518" }}
-          >
-            <ShoppingCart className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Menú</span>
-          </a>
-          <a
-            href="/cocina"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors text-gray-500 hover:text-gray-700"
-          >
-            <span className="text-lg mb-1">👨‍🍳</span>
-            <span className="text-xs font-medium">Cocina</span>
-          </a>
-          <a
-            href="/admin-menu"
-            className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 transition-colors text-gray-500 hover:text-gray-700"
-          >
-            <span className="text-lg mb-1">⚙️</span>
-            <span className="text-xs font-medium">Admin</span>
-          </a>
-        </div>
-      </nav>
     </div>
   );
 }
