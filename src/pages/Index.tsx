@@ -1,44 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMenuItems } from "@/lib/firestore";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [isConnecting, setIsConnecting] = useState(true);
-  const [firebaseConnected, setFirebaseConnected] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const testFirebaseConnection = async () => {
-      try {
-        console.log("🔥 Validando conexión con Firebase...");
+    // Simple redirect with a short delay to show the loading screen
+    const timer = setTimeout(() => {
+      navigate("/menu-cliente", { replace: true });
+    }, 1500);
 
-        // Test Firebase connection using our existing function
-        await getMenuItems();
-
-        console.log("✅ Firebase conectado correctamente");
-        setFirebaseConnected(true);
-        setError(null);
-
-        // Redirect after successful connection
-        setTimeout(() => {
-          navigate("/menu-cliente", { replace: true });
-        }, 1000);
-      } catch (err) {
-        console.error("❌ Error conectando con Firebase:", err);
-        setError("Error de conexión con Firebase");
-        setFirebaseConnected(false);
-
-        // Redirect anyway after 3 seconds
-        setTimeout(() => {
-          navigate("/menu-cliente", { replace: true });
-        }, 3000);
-      } finally {
-        setIsConnecting(false);
-      }
-    };
-
-    testFirebaseConnection();
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   return (
@@ -58,36 +30,15 @@ const Index = () => {
         </div>
 
         <div className="space-y-4">
-          {isConnecting ? (
-            <>
-              <div
-                className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
-                style={{ borderColor: "#FF7518" }}
-              ></div>
-              <p className="text-gray-600">Conectando con Firebase...</p>
-              <div className="text-sm text-gray-400">
-                <p>🔥 Validando base de datos</p>
-                <p>📱 Preparando aplicación</p>
-              </div>
-            </>
-          ) : firebaseConnected ? (
-            <>
-              <div className="text-green-600 text-4xl mb-2">✅</div>
-              <p className="text-green-600 font-medium">¡Conexión exitosa!</p>
-              <p className="text-gray-600">Redirigiendo al menú...</p>
-            </>
-          ) : (
-            <>
-              <div className="text-orange-500 text-4xl mb-2">⚠️</div>
-              <p className="text-orange-600 font-medium">
-                Advertencia de conexión
-              </p>
-              <p className="text-gray-600 text-sm">{error}</p>
-              <p className="text-gray-500 text-sm">
-                Continuando en modo local...
-              </p>
-            </>
-          )}
+          <div
+            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+            style={{ borderColor: "#FF7518" }}
+          ></div>
+          <p className="text-gray-600">Cargando aplicación...</p>
+          <div className="text-sm text-gray-400">
+            <p>🔥 Conectando con Firebase</p>
+            <p>📱 Preparando menú</p>
+          </div>
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-200">
