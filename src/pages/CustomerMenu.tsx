@@ -175,9 +175,7 @@ function CustomerMenu() {
                 <h1 className="text-2xl font-bold text-gray-900">
                   Viejo Sabroso
                 </h1>
-                <p className="text-sm text-gray-600">
-                  Auténtica comida mexicana
-                </p>
+                <p className="text-sm text-gray-600">Summerween 25</p>
               </div>
             </div>
 
