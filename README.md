@@ -1,35 +1,38 @@
-# 🍽️ Viejo Sabroso - Restaurant Management App
+# 🍽️ Viejo Sabroso 2 - Restaurant Management App
 
 **Version:** 3.1  
-**Demo:** [Ver aplicación en vivo](https://viejo-sabroso.vercel.app)
+**Demo:** [Ver aplicación en vivo](https://viejo-sabroso-2.vercel.app)
 
 ## 📱 Descripción
 
-**Viejo Sabroso** es una aplicación completa de gestión de restaurante con **tiempo real**, diseñada con enfoque **mobile-first** y tema **Halloween Orange**. Incluye tres interfaces principales: menú para clientes, panel de cocina y administración.
+**Viejo Sabroso 2** es una aplicación completa de gestión de restaurante con **tiempo real**, diseñada con enfoque **mobile-first** y tema **Halloween Orange**. Incluye tres interfaces principales: menú para clientes, panel de cocina y administración.
 
 ## ✨ Características Principales
 
 ### 🍽️ **Menú Cliente** (`/menu-cliente`)
 
-- ✅ Layout de tres columnas con imágenes
+- ✅ Layout de tres columnas con imágenes del lado izquierdo
 - ✅ Productos en tiempo real desde Firebase
 - ✅ Carrito de compras funcional
 - ✅ Filtros por categoría (Comida, Bebidas, Postres)
 - ✅ Proceso completo de pedidos
+- ✅ Notificaciones toast en parte inferior
 
 ### 👨‍🍳 **Panel Cocina** (`/cocina`)
 
 - ✅ Órdenes en tiempo real
 - ✅ Gestión de estados (Nuevo → En Preparación → Listo → Entregado)
-- ✅ Estadísticas dinámicas
+- ✅ Estadísticas dinámicas actualizadas automáticamente
 - ✅ Filtros por estado de orden
+- ✅ Interfaz limpia sin botones auxiliares
 
 ### ⚙️ **Administración** (`/admin-menu`)
 
-- ✅ CRUD completo de productos
+- ✅ CRUD completo de productos en tiempo real
 - ✅ Layout de tres columnas con imágenes
 - ✅ Botones de acción organizados verticalmente
 - ✅ Toggle de disponibilidad de productos
+- ✅ Sistema de imágenes placeholder automático
 
 ## 🛠️ Stack Tecnológico
 
@@ -45,7 +48,8 @@
 - **Tema:** Halloween Orange (#FF7518)
 - **Moneda:** Pesos Mexicanos (MXN)
 - **Enfoque:** Mobile-first responsive
-- **Layout:** Sistema de tres columnas optimizado
+- **Layout:** Sistema de tres columnas optimizado (25% - 50% - 25%)
+- **Notificaciones:** Toast en parte inferior para mejor UX móvil
 
 ## 🔥 Firebase Setup
 
@@ -60,8 +64,8 @@ const firebaseConfig = {
 
 ### 📊 Colecciones:
 
-- **`menu_items`** - Productos del menú
-- **`orders`** - Órdenes de clientes
+- **`menu_items`** - Productos del menú con imágenes
+- **`orders`** - Órdenes de clientes con estados
 
 ## 🚀 Instalación y Desarrollo
 
@@ -75,8 +79,8 @@ const firebaseConfig = {
 1. **Clonar repositorio:**
 
 ```bash
-git clone https://github.com/TU_USUARIO/viejo-sabroso.git
-cd viejo-sabroso
+git clone https://github.com/TU_USUARIO/viejo-sabroso-2.git
+cd viejo-sabroso-2
 ```
 
 2. **Instalar dependencias:**
@@ -115,14 +119,14 @@ Este proyecto está optimizado para **Vercel**:
 2. **Conecta con Vercel**
 3. **Deploy automático** - Sin configuración adicional necesaria
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TU_USUARIO/viejo-sabroso)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TU_USUARIO/viejo-sabroso-2)
 
 ## 📱 Rutas Principales
 
 - **`/`** - Página principal con navegación
-- **`/menu-cliente`** - Menú para clientes
-- **`/cocina`** - Panel de cocina
-- **`/admin-menu`** - Panel de administración
+- **`/menu-cliente`** - Menú para clientes con layout 3 columnas
+- **`/cocina`** - Panel de cocina con tiempo real
+- **`/admin-menu`** - Panel de administración con CRUD completo
 
 ## 🎯 Funcionalidades en Tiempo Real
 
@@ -133,25 +137,39 @@ Este proyecto está optimizado para **Vercel**:
 3. **Cocina cambia estado** → Se actualiza en tiempo real
 4. **Notificaciones toast** → Feedback visual en parte inferior
 
-## 📸 Screenshots
+### **Layout Visual v3.1:**
 
-### Menú Cliente
+```
+┌─────────────────────────────────────────┐
+│ [Imagen] [Información] [Precio/Acciones] │
+│ ┌─────┐  Nombre del Producto    $85.00   │
+│ │ 64px│  Descripción del        [+] / 👁️ │
+│ │ 64px│  producto aquí...       ✏️ / 🗑️  │
+│ └─────┘                                 │
+└─────────────────────────────────────────┘
+```
 
-- Layout de tres columnas con imágenes
-- Carrito funcional con totales
-- Filtros por categoría
+## 📸 Sistema de Imágenes
 
-### Panel Cocina
+### **Placeholder Automático:**
 
-- Órdenes en tiempo real
-- Estadísticas dinámicas
-- Gestión de estados
+```javascript
+const getPlaceholderImage = (item) => {
+  const seed = item.name.toLowerCase().replace(/\s+/g, "-");
 
-### Administración
+  if (item.category === "comida") {
+    return `https://picsum.photos/seed/${seed}-food/200/200`;
+  } else if (item.category === "bebidas") {
+    return `https://picsum.photos/seed/${seed}-drink/200/200`;
+  } else {
+    return `https://picsum.photos/seed/${seed}-dessert/200/200`;
+  }
+};
+```
 
-- CRUD completo de productos
-- Botones de acción verticales
-- Toggle de disponibilidad
+- ✅ **URLs únicas** por producto
+- ✅ **Fallback robusto** con emoji si falla
+- ✅ **Categorización visual** por tipo
 
 ## 🔄 Changelog
 
@@ -159,17 +177,20 @@ Este proyecto está optimizado para **Vercel**:
 
 - ✅ Notificaciones toast reposicionadas a parte inferior
 - ✅ UX móvil mejorada
+- ✅ Mejor visibilidad en dispositivos móviles
 
 ### **v3.0**
 
 - ✅ Layout de tres columnas implementado
 - ✅ Sistema de imágenes con placeholder automático
 - ✅ Botones de acción organizados verticalmente
+- ✅ Imágenes del lado izquierdo
 
 ### **v2.0**
 
 - ✅ Firebase integrado con tiempo real
 - ✅ Elementos de desarrollo eliminados
+- ✅ Interfaz completamente limpia
 
 ## 🤝 Contribución
 
@@ -188,6 +209,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 - **Firebase** por la base de datos en tiempo real
 - **Vercel** por el hosting gratuito
 - **Tailwind CSS** por el sistema de estilos
+- **Sonner** por las notificaciones toast
 - **Lucide React** por los iconos
 
 ---
