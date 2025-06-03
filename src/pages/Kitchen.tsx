@@ -223,7 +223,7 @@ function Kitchen() {
       </div>
 
       {/* Orders List */}
-      <main className="p-4">
+      <main className="p-4 pb-20">
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -234,16 +234,9 @@ function Kitchen() {
                 ? "No hay pedidos activos. Los nuevos pedidos aparecerán aquí automáticamente."
                 : `No hay pedidos ${activeFilter === "nuevo" ? "nuevos" : activeFilter === "en-preparacion" ? "en preparación" : "listos"}.`}
             </p>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-gray-400">
               Los clientes pueden hacer pedidos desde el menú principal
             </p>
-            <a
-              href="/menu-cliente"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
-              style={{ backgroundColor: "#FF7518" }}
-            >
-              🍽️ Ir al Menú
-            </a>
           </div>
         ) : (
           <div className="space-y-4">
@@ -319,35 +312,6 @@ function Kitchen() {
           </div>
         )}
       </main>
-
-      {/* Navigation Links */}
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2">
-        <a
-          href="/menu-cliente"
-          className="px-3 py-2 text-white rounded-lg text-sm hover:opacity-90 transition-colors shadow-lg"
-          style={{ backgroundColor: "#FF7518" }}
-        >
-          🍽️ Menú
-        </a>
-        <a
-          href="/admin-menu"
-          className="px-3 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 transition-colors shadow-lg"
-        >
-          ⚙️ Admin
-        </a>
-      </div>
-
-      {/* Status indicator for real-time connection */}
-      <div className="fixed top-4 left-4 z-30">
-        <div className="bg-blue-100 border border-blue-300 rounded-lg px-3 py-1">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-blue-700">
-              Firebase conectado ({orders.length} pedidos activos)
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

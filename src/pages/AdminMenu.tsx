@@ -4,7 +4,6 @@ import { useRealtimeMenuItems } from "../hooks/useRealtimeMenuItems";
 import { addMenuItem, updateMenuItem, deleteMenuItem } from "../lib/firestore";
 import { MenuItem } from "../types";
 import { toast } from "sonner";
-import { DevTools } from "../components/DevTools";
 
 function AdminMenu() {
   const { menuItems, loading, error } = useRealtimeMenuItems();
@@ -121,8 +120,6 @@ function AdminMenu() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DevTools />
-
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-4 py-4">
@@ -182,7 +179,7 @@ function AdminMenu() {
       </div>
 
       {/* Menu Items List */}
-      <main className="p-4">
+      <main className="p-4 pb-20">
         {getFilteredItems().length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📋</div>
@@ -191,22 +188,14 @@ function AdminMenu() {
                 ? "No hay productos en el menú"
                 : `No hay productos en la categoría ${activeCategory}`}
             </p>
-            {activeCategory === "todos" && (
-              <div className="space-y-4">
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
-                  style={{ backgroundColor: "#FF7518" }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Agregar primer producto
-                </button>
-                <p className="text-sm text-gray-400">
-                  O usa las herramientas de desarrollo para poblar con productos
-                  de ejemplo
-                </p>
-              </div>
-            )}
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
+              style={{ backgroundColor: "#FF7518" }}
+            >
+              <Plus className="h-4 w-4" />
+              Agregar primer producto
+            </button>
           </div>
         ) : (
           <div className="grid gap-4">
@@ -305,35 +294,6 @@ function AdminMenu() {
           isSubmitting={isSubmitting}
         />
       )}
-
-      {/* Navigation Links */}
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2">
-        <a
-          href="/menu-cliente"
-          className="px-3 py-2 text-white rounded-lg text-sm hover:opacity-90 transition-colors shadow-lg"
-          style={{ backgroundColor: "#FF7518" }}
-        >
-          🍽️ Menú
-        </a>
-        <a
-          href="/cocina"
-          className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors shadow-lg"
-        >
-          👨‍🍳 Cocina
-        </a>
-      </div>
-
-      {/* Status indicator for real-time connection */}
-      <div className="fixed top-4 left-4 z-30">
-        <div className="bg-purple-100 border border-purple-300 rounded-lg px-3 py-1">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-purple-700">
-              Firebase conectado ({menuItems.length} productos)
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

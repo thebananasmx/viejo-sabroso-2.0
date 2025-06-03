@@ -209,7 +209,7 @@ function CustomerMenu() {
       </div>
 
       {/* Menu Items */}
-      <main className="p-4">
+      <main className="p-4 pb-20">
         <div className="grid gap-4">
           {getItemsByCategory(activeCategory).length === 0 ? (
             <div className="text-center py-12">
@@ -363,34 +363,6 @@ function CustomerMenu() {
           </div>
         </div>
       )}
-
-      {/* Navigation Links */}
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2">
-        <a
-          href="/cocina"
-          className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors shadow-lg"
-        >
-          👨‍🍳 Cocina
-        </a>
-        <a
-          href="/admin-menu"
-          className="px-3 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 transition-colors shadow-lg"
-        >
-          ⚙️ Admin
-        </a>
-      </div>
-
-      {/* Status indicator for real-time connection */}
-      <div className="fixed top-4 left-4 z-30">
-        <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-green-700">
-              Firebase conectado ({menuItems.length} productos)
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
