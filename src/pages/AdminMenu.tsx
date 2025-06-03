@@ -280,7 +280,7 @@ function AdminMenu() {
                   </div>
 
                   {/* Columna 3: Acciones (3 columnas) */}
-                  <div className="col-span-3 flex items-center justify-end gap-2">
+                  <div className="col-span-3 flex flex-col items-end justify-center gap-1">
                     <button
                       onClick={() => handleToggleAvailability(item)}
                       className={`p-2 rounded-full transition-colors ${
@@ -290,11 +290,7 @@ function AdminMenu() {
                       }`}
                       title={item.available ? "Desactivar" : "Activar"}
                     >
-                      {item.available ? (
-                        <Eye className="h-4 w-4" />
-                      ) : (
-                        <EyeOff className="h-4 w-4" />
-                      )}
+                      {item.available ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </button>
 
                     <button
@@ -312,6 +308,7 @@ function AdminMenu() {
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
+                  </div>
                   </div>
                 </div>
               </div>
