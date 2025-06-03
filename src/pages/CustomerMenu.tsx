@@ -1,83 +1,13 @@
 import { useState } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
-import { MenuItem, CartItem } from "../types";
+import { useRealtimeMenuItems } from "../hooks/useRealtimeMenuItems";
+import { addOrder } from "../lib/firestore";
+import { CartItem, MenuItem } from "../types";
 import { toast } from "sonner";
 
-// Mock data for now
-const mockMenuItems: MenuItem[] = [
-  {
-    id: "1",
-    name: "Tacos al Pastor",
-    description: "Deliciosos tacos con carne al pastor, piña y salsa verde",
-    price: 85.0,
-    category: "comida",
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    name: "Quesadilla de Flor de Calabaza",
-    description: "Quesadilla artesanal con flor de calabaza y queso oaxaca",
-    price: 65.0,
-    category: "comida",
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    name: "Pozole Rojo",
-    description: "Tradicional pozole rojo con cerdo y acompañamientos",
-    price: 120.0,
-    category: "comida",
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "4",
-    name: "Agua de Horchata",
-    description: "Refrescante agua de horchata casera",
-    price: 35.0,
-    category: "bebidas",
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "5",
-    name: "Agua de Jamaica",
-    description: "Agua fresca de flor de jamaica",
-    price: 30.0,
-    category: "bebidas",
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "6",
-    name: "Flan Napolitano",
-    description: "Flan casero con caramelo tradicional",
-    price: 45.0,
-    category: "postres",
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "7",
-    name: "Tres Leches",
-    description: "Pastel tres leches con canela",
-    price: 55.0,
-    category: "postres",
-    available: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
 function CustomerMenu() {
+  const { menuItems, availableItems, getItemsByCategory, loading, error } =
+    useRealtimeMenuItems();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [activeCategory, setActiveCategory] =
@@ -159,8 +89,12 @@ function CustomerMenu() {
     setIsPlacingOrder(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const orderId = await addOrder({
+        customerName: customerName.trim(),
+        tableNumber: tableNumber?.trim(),
+        items: cart,
+        total: getCartTotal(),
+      });
 
       toast.success(
         "¡Pedido realizado con éxito! Se está preparando en cocina.",
@@ -174,17 +108,39 @@ function CustomerMenu() {
     }
   };
 
-  const getItemsByCategory = (category: MenuItem["category"]) => {
-    return mockMenuItems.filter(
-      (item) => item.category === category && item.available,
-    );
-  };
-
   const categories = [
     { key: "comida" as const, label: "Comida", icon: "🍽️" },
     { key: "bebidas" as const, label: "Bebidas", icon: "🥤" },
     { key: "postres" as const, label: "Postres", icon: "🍰" },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando menú desde Firebase...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -260,6 +216,9 @@ function CustomerMenu() {
               <div className="text-6xl mb-4">🍽️</div>
               <p className="text-gray-500 mb-4">
                 No hay productos disponibles en esta categoría
+              </p>
+              <p className="text-sm text-gray-400">
+                Los productos aparecerán aquí cuando estén disponibles
               </p>
             </div>
           ) : (
@@ -419,6 +378,18 @@ function CustomerMenu() {
         >
           ⚙️ Admin
         </a>
+      </div>
+
+      {/* Status indicator for real-time connection */}
+      <div className="fixed top-4 left-4 z-30">
+        <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs text-green-700">
+              Firebase conectado ({menuItems.length} productos)
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
