@@ -222,7 +222,7 @@ function AdminMenu() {
                   !item.available ? "opacity-60" : ""
                 }`}
               >
-                <div className="grid grid-cols-12 gap-4 p-4 min-h-[80px] items-center">
+                <div className="grid grid-cols-12 gap-4 p-4 min-h-[100px] items-center">
                   {/* Columna 1: Imagen (3 columnas) */}
                   <div className="col-span-3">
                     <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
@@ -279,7 +279,7 @@ function AdminMenu() {
                     </div>
                   </div>
 
-                  {/* Columna 3: Acciones (3 columnas) */}
+                  {/* Columna 3: Acciones (3 columnas) - Alineadas verticalmente */}
                   <div className="col-span-3 flex flex-col items-end justify-center gap-1">
                     <button
                       onClick={() => handleToggleAvailability(item)}
@@ -290,7 +290,11 @@ function AdminMenu() {
                       }`}
                       title={item.available ? "Desactivar" : "Activar"}
                     >
-                      {item.available ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      {item.available ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
                     </button>
 
                     <button
@@ -308,7 +312,6 @@ function AdminMenu() {
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
-                  </div>
                   </div>
                 </div>
               </div>
