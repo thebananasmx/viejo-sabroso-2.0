@@ -249,9 +249,11 @@ export default function Kitchen() {
             <div className="flex items-center gap-3">
               <div
                 className="p-2 rounded-full"
-                style={{ backgroundColor: "#FF7518", opacity: 0.1 }}
+                style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
               >
-                <span className="text-2xl">👨‍🍳</span>
+                <span className="text-2xl" style={{ opacity: 1 }}>
+                  👨‍🍳
+                </span>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Cocina</h1>
@@ -394,10 +396,9 @@ export default function Kitchen() {
                       : {}
                   }
                 >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full" style={{ backgroundColor: 'rgba(255, 117, 24, 0.1)' }}>
-                <span className="text-2xl" style={{ opacity: 1 }}>👨‍🍳</span>
-              </div>
+                  <div className="p-4 pb-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
                         <span
                           className="px-3 py-1 rounded text-white text-sm font-medium"
                           style={{
