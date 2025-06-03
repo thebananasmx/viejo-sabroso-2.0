@@ -244,8 +244,30 @@ function CustomerMenu() {
                 className="bg-white rounded-lg shadow-sm border overflow-hidden"
               >
                 <div className="flex h-24">
-                  {/* Content Section */}
-                  <div className="flex-1 p-4 flex flex-col justify-between">
+                  {/* Image Section - Now on the left */}
+                  <div className="w-24 h-24 flex-shrink-0">
+                    <img
+                      src={getPlaceholderImage(item)}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to a solid color background with emoji if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center text-2xl" style="background-color: rgba(255, 117, 24, 0.1)">
+                              ${item.category === "comida" ? "🍽️" : item.category === "bebidas" ? "🥤" : "🍰"}
+                            </div>
+                          `;
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Content Section - Now on the right with more space */}
+                  <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
                         {item.name}
@@ -269,28 +291,6 @@ function CustomerMenu() {
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
-                  </div>
-
-                  {/* Image Section */}
-                  <div className="w-24 h-24 flex-shrink-0">
-                    <img
-                      src={getPlaceholderImage(item)}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to a solid color background with emoji if image fails to load
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = `
-                            <div class="w-full h-full flex items-center justify-center text-2xl" style="background-color: rgba(255, 117, 24, 0.1)">
-                              ${item.category === "comida" ? "🍽️" : item.category === "bebidas" ? "🥤" : "🍰"}
-                            </div>
-                          `;
-                        }
-                      }}
-                    />
                   </div>
                 </div>
               </div>
