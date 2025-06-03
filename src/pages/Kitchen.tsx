@@ -311,7 +311,7 @@ export default function Kitchen() {
             <button
               key={filter.key}
               onClick={() => setSelectedFilter(filter.key)}
-              className={`whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-md transition-colors relative ${
+              className={`whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-md transition-colors relative flex flex-row items-center ${
                 selectedFilter === filter.key
                   ? "text-white"
                   : "border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -322,20 +322,21 @@ export default function Kitchen() {
                   : {}
               }
             >
-              {filter.label}
+              <span>{filter.label}</span>
               {filter.key !== "todos" &&
                 orderCounts[filter.key as keyof typeof orderCounts] > 0 && (
                   <span
-                    className={`ml-2 h-5 w-5 rounded-full text-xs flex items-center justify-center ${
+                    className={`h-5 w-5 rounded-full text-xs flex items-center justify-center ${
                       selectedFilter === filter.key
                         ? "bg-white text-orange"
                         : "bg-orange text-white"
                     }`}
-                    style={
-                      selectedFilter === filter.key
+                    style={{
+                      ...(selectedFilter === filter.key
                         ? { color: "#FF7518" }
-                        : { backgroundColor: "#FF7518" }
-                    }
+                        : { backgroundColor: "#FF7518" }),
+                      margin: "auto 0 auto 10px",
+                    }}
                   >
                     {orderCounts[filter.key as keyof typeof orderCounts]}
                   </span>
