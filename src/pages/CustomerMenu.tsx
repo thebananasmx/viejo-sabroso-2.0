@@ -1,32 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
-
-const sampleMenuItems = [
-  {
-    id: "1",
-    name: "Paella Valenciana",
-    description: "Arroz con pollo, verduras y azafrán",
-    price: 18.5,
-    category: "comida",
-    available: true,
-  },
-  {
-    id: "2",
-    name: "Tortilla Española",
-    description: "Tortilla de patatas casera con cebolla",
-    price: 8.9,
-    category: "comida",
-    available: true,
-  },
-  {
-    id: "3",
-    name: "Sangría",
-    description: "Sangría tradicional con frutas",
-    price: 12.0,
-    category: "bebidas",
-    available: true,
-  },
-];
+import { MenuItem, CartItem, MenuCategory } from "@/types";
+import { subscribeToMenuItems, addOrder } from "@/lib/firestore";
 
 const categories = [
   { key: "comida", label: "Comida" },
@@ -35,11 +10,34 @@ const categories = [
 ];
 
 export default function CustomerMenu() {
-  const [selectedCategory, setSelectedCategory] = useState("comida");
-  const [cartCount, setCartCount] = useState(0);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [selectedCategory, setSelectedCategory] =
+    useState<MenuCategory>("comida");
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [customerName, setCustomerName] = useState("");
+  const [tableNumber, setTableNumber] = useState("");
 
-  const filteredItems = sampleMenuItems.filter(
+  useEffect(() => {
+    const unsubscribe = subscribeToMenuItems((items) => {
+      setMenuItems(items.filter((item) => item.available));
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const filteredItems = menuItems.filter(
     (item) => item.category === selectedCategory,
+  );
+  const cartItemsCount = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+  const cartTotal = cartItems.reduce(
+    (sum, item) => sum + item.menuItem.price * item.quantity,
+    0,
   );
 
   const formatPrice = (price: number) => {
@@ -49,14 +47,88 @@ export default function CustomerMenu() {
     }).format(price);
   };
 
-  const addToCart = (item: any) => {
-    setCartCount((prev) => prev + 1);
-    // Simular feedback
-    alert(`${item.name} agregado al carrito!`);
+  const addToCart = (menuItem: MenuItem) => {
+    setCartItems((prev) => {
+      const existingItem = prev.find(
+        (item) => item.menuItem.id === menuItem.id,
+      );
+
+      if (existingItem) {
+        return prev.map((item) =>
+          item.menuItem.id === menuItem.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+      }
+
+      return [...prev, { menuItem, quantity: 1 }];
+    });
+
+    alert(`${menuItem.name} agregado al carrito!`);
   };
 
+  const updateCartQuantity = (itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setCartItems((prev) =>
+        prev.filter((item) => item.menuItem.id !== itemId),
+      );
+      return;
+    }
+
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.menuItem.id === itemId ? { ...item, quantity } : item,
+      ),
+    );
+  };
+
+  const removeFromCart = (itemId: string) => {
+    setCartItems((prev) => prev.filter((item) => item.menuItem.id !== itemId));
+  };
+
+  const placeOrder = async () => {
+    if (!customerName.trim() || cartItems.length === 0) {
+      alert("Por favor ingresa tu nombre y agrega productos al carrito");
+      return;
+    }
+
+    try {
+      await addOrder({
+        customerName: customerName.trim(),
+        tableNumber: tableNumber.trim() || undefined,
+        items: cartItems,
+        total: cartTotal,
+      });
+
+      setCartItems([]);
+      setCustomerName("");
+      setTableNumber("");
+      setIsCartOpen(false);
+      alert(
+        "¡Pedido realizado con éxito! El personal de cocina ha sido notificado.",
+      );
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Error al realizar el pedido. Inténtalo de nuevo.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div
+            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4"
+            style={{ borderColor: "#FF7518" }}
+          ></div>
+          <p className="text-gray-600">Cargando menú desde Firebase...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-4 py-4">
@@ -69,14 +141,15 @@ export default function CustomerMenu() {
             </div>
 
             <button
-              className="relative h-12 w-12 rounded-full p-0 flex items-center justify-center text-white"
+              onClick={() => setIsCartOpen(true)}
+              className="relative h-12 w-12 rounded-full p-0 flex items-center justify-center text-white transition-colors hover:opacity-90"
               style={{ backgroundColor: "#FF7518" }}
-              disabled={cartCount === 0}
+              disabled={cartItemsCount === 0}
             >
               <ShoppingCart className="h-6 w-6" />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs border-2 border-white flex items-center justify-center">
-                  {cartCount}
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs border-2 border-white flex items-center justify-center font-bold">
+                  {cartItemsCount}
                 </span>
               )}
             </button>
@@ -112,25 +185,50 @@ export default function CustomerMenu() {
       <main className="p-4">
         {filteredItems.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">
-              No hay productos disponibles en esta categoría
+            <p className="text-gray-500 mb-4">
+              {menuItems.length === 0
+                ? "No hay productos en el menú. Ve al panel de administración para agregar productos."
+                : "No hay productos disponibles en esta categoría"}
             </p>
+            {menuItems.length === 0 && (
+              <a
+                href="/admin-menu"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
+                style={{ backgroundColor: "#FF7518" }}
+              >
+                <span className="text-lg">⚙️</span>
+                Ir a Administración
+              </a>
+            )}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+                className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-transform hover:scale-105"
               >
+                {item.imageUrl && (
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+
                 <div className="p-4 space-y-3">
                   <div className="space-y-1">
                     <h3 className="font-semibold text-lg leading-tight">
                       {item.name}
                     </h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {item.description}
-                    </p>
+                    {item.description && (
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {item.description}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -154,7 +252,140 @@ export default function CustomerMenu() {
         )}
       </main>
 
-      {/* Simple Navigation */}
+      {/* Cart Modal */}
+      {isCartOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center sm:justify-center">
+          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-hidden sm:rounded-lg rounded-t-lg">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                <h2 className="text-xl font-semibold">Mi Pedido</h2>
+              </div>
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="h-8 w-8 p-0 flex items-center justify-center text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-0">
+              {cartItems.length === 0 ? (
+                <div className="p-6 text-center text-gray-500">
+                  Tu carrito está vacío
+                </div>
+              ) : (
+                <>
+                  <div className="max-h-60 overflow-y-auto p-4 space-y-3">
+                    {cartItems.map((item) => (
+                      <div
+                        key={item.menuItem.id}
+                        className="flex items-center gap-3 py-2"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium truncate">
+                            {item.menuItem.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {formatPrice(item.menuItem.price)}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              updateCartQuantity(
+                                item.menuItem.id,
+                                item.quantity - 1,
+                              )
+                            }
+                            className="h-8 w-8 p-0 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50"
+                            disabled={item.quantity <= 1}
+                          >
+                            −
+                          </button>
+
+                          <span className="w-8 text-center font-medium">
+                            {item.quantity}
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              updateCartQuantity(
+                                item.menuItem.id,
+                                item.quantity + 1,
+                              )
+                            }
+                            className="h-8 w-8 p-0 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50"
+                          >
+                            +
+                          </button>
+
+                          <button
+                            onClick={() => removeFromCart(item.menuItem.id)}
+                            className="h-8 w-8 p-0 flex items-center justify-center text-red-600 hover:text-red-700"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border-t p-4 space-y-4">
+                    <div className="flex justify-between items-center text-lg font-semibold">
+                      <span>Total:</span>
+                      <span>{formatPrice(cartTotal)}</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Nombre *
+                        </label>
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="Tu nombre"
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2"
+                          style={{ "--tw-ring-color": "#FF7518" }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mesa (opcional)
+                        </label>
+                        <input
+                          type="text"
+                          value={tableNumber}
+                          onChange={(e) => setTableNumber(e.target.value)}
+                          placeholder="Número de mesa"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2"
+                          style={{ "--tw-ring-color": "#FF7518" }}
+                        />
+                      </div>
+
+                      <button
+                        onClick={placeOrder}
+                        disabled={!customerName.trim()}
+                        className="w-full px-4 py-3 rounded text-white font-medium transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ backgroundColor: "#FF7518" }}
+                      >
+                        Realizar Pedido
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 sm:hidden">
         <div className="flex items-center justify-around py-2">
           <a
