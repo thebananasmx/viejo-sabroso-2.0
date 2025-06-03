@@ -21,6 +21,22 @@ function AdminMenu() {
     }).format(price);
   };
 
+  // Function to get placeholder image based on category and item name
+  const getPlaceholderImage = (item: MenuItem) => {
+    if (item.imageUrl) return item.imageUrl;
+
+    // Generate placeholder images based on category and name
+    const seed = item.name.toLowerCase().replace(/\s+/g, "-");
+
+    if (item.category === "comida") {
+      return `https://picsum.photos/seed/${seed}-food/200/200`;
+    } else if (item.category === "bebidas") {
+      return `https://picsum.photos/seed/${seed}-drink/200/200`;
+    } else {
+      return `https://picsum.photos/seed/${seed}-dessert/200/200`;
+    }
+  };
+
   const getFilteredItems = () => {
     if (activeCategory === "todos") return menuItems;
     return menuItems.filter((item) => item.category === activeCategory);
@@ -202,18 +218,43 @@ function AdminMenu() {
             {getFilteredItems().map((item) => (
               <div
                 key={item.id}
-                className={`bg-white rounded-lg shadow-sm border p-4 ${
+                className={`bg-white rounded-lg shadow-sm border overflow-hidden ${
                   !item.available ? "opacity-60" : ""
                 }`}
               >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
+                <div className="grid grid-cols-12 gap-4 p-4 min-h-[80px] items-center">
+                  {/* Columna 1: Imagen (3 columnas) */}
+                  <div className="col-span-3">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                      <img
+                        src={getPlaceholderImage(item)}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to a solid color background with emoji if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `
+                              <div class="w-full h-full flex items-center justify-center text-lg rounded-lg" style="background-color: rgba(255, 117, 24, 0.1)">
+                                ${item.category === "comida" ? "🍽️" : item.category === "bebidas" ? "🥤" : "🍰"}
+                              </div>
+                            `;
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Columna 2: Información (6 columnas) */}
+                  <div className="col-span-6">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-base font-semibold text-gray-900 line-clamp-1">
                         {item.name}
                       </h3>
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${
+                        className={`px-2 py-1 text-xs rounded-full flex-shrink-0 ${
                           item.available
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
@@ -222,15 +263,15 @@ function AdminMenu() {
                         {item.available ? "Disponible" : "No disponible"}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
                       {item.description}
                     </p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span className="capitalize bg-gray-100 px-2 py-1 rounded">
+                    <div className="flex items-center gap-2">
+                      <span className="capitalize bg-gray-100 px-2 py-1 rounded text-xs">
                         {item.category}
                       </span>
                       <span
-                        className="text-xl font-bold"
+                        className="text-lg font-bold"
                         style={{ color: "#FF7518" }}
                       >
                         {formatPrice(item.price)}
@@ -238,7 +279,8 @@ function AdminMenu() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 ml-4">
+                  {/* Columna 3: Acciones (3 columnas) */}
+                  <div className="col-span-3 flex items-center justify-end gap-2">
                     <button
                       onClick={() => handleToggleAvailability(item)}
                       className={`p-2 rounded-full transition-colors ${
