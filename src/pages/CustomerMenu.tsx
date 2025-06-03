@@ -1,65 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
-
-// Mock data for restaurant menu
-const menuData = [
-  {
-    id: "1",
-    name: "Tacos al Pastor",
-    description: "Deliciosos tacos con carne al pastor, piña y salsa verde",
-    price: 85.0,
-    category: "comida",
-    available: true,
-  },
-  {
-    id: "2",
-    name: "Quesadilla de Flor de Calabaza",
-    description: "Quesadilla artesanal con flor de calabaza y queso oaxaca",
-    price: 65.0,
-    category: "comida",
-    available: true,
-  },
-  {
-    id: "3",
-    name: "Pozole Rojo",
-    description: "Tradicional pozole rojo con cerdo y acompañamientos",
-    price: 120.0,
-    category: "comida",
-    available: true,
-  },
-  {
-    id: "4",
-    name: "Agua de Horchata",
-    description: "Refrescante agua de horchata casera",
-    price: 35.0,
-    category: "bebidas",
-    available: true,
-  },
-  {
-    id: "5",
-    name: "Agua de Jamaica",
-    description: "Agua fresca de flor de jamaica",
-    price: 30.0,
-    category: "bebidas",
-    available: true,
-  },
-  {
-    id: "6",
-    name: "Flan Napolitano",
-    description: "Flan casero con caramelo tradicional",
-    price: 45.0,
-    category: "postres",
-    available: true,
-  },
-  {
-    id: "7",
-    name: "Tres Leches",
-    description: "Pastel tres leches con canela",
-    price: 55.0,
-    category: "postres",
-    available: true,
-  },
-];
+import { MenuItem, CartItem, MenuCategory } from "../types";
+import { subscribeToMenuItems, addOrder } from "../lib/firestore";
+import { toast } from "sonner";
 
 const categories = [
   { key: "comida", label: "Comida" },
@@ -68,13 +11,30 @@ const categories = [
 ];
 
 function CustomerMenu() {
-  const [selectedCategory, setSelectedCategory] = useState("comida");
-  const [cartItems, setCartItems] = useState([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [selectedCategory, setSelectedCategory] =
+    useState<MenuCategory>("comida");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredItems = menuData.filter(
+  useEffect(() => {
+    console.log("🔥 Conectando con Firebase para obtener productos...");
+
+    const unsubscribe = subscribeToMenuItems((items) => {
+      console.log("📦 Productos recibidos de Firebase:", items.length);
+      setMenuItems(items.filter((item) => item.available));
+      setLoading(false);
+      setError(null);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const filteredItems = menuItems.filter(
     (item) => item.category === selectedCategory,
   );
   const cartItemsCount = cartItems.reduce(
@@ -82,73 +42,157 @@ function CustomerMenu() {
     0,
   );
   const cartTotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + item.menuItem.price * item.quantity,
     0,
   );
 
-  const formatPrice = (price) => {
+  const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-MX", {
       style: "currency",
       currency: "MXN",
     }).format(price);
   };
 
-  const addToCart = (menuItem) => {
+  const addToCart = (menuItem: MenuItem) => {
     setCartItems((prev) => {
-      const existingItem = prev.find((item) => item.id === menuItem.id);
+      const existingItem = prev.find(
+        (item) => item.menuItem.id === menuItem.id,
+      );
 
       if (existingItem) {
         return prev.map((item) =>
-          item.id === menuItem.id
+          item.menuItem.id === menuItem.id
             ? { ...item, quantity: item.quantity + 1 }
             : item,
         );
       }
 
-      return [...prev, { ...menuItem, quantity: 1 }];
+      return [...prev, { menuItem, quantity: 1 }];
+    });
+
+    toast.success(`${menuItem.name} agregado al carrito`, {
+      description: `${formatPrice(menuItem.price)} - ${cartItemsCount + 1} producto(s) en el carrito`,
+      duration: 2000,
     });
   };
 
-  const updateCartQuantity = (itemId, quantity) => {
+  const updateCartQuantity = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      setCartItems((prev) => prev.filter((item) => item.id !== itemId));
+      const item = cartItems.find((item) => item.menuItem.id === itemId);
+      setCartItems((prev) =>
+        prev.filter((item) => item.menuItem.id !== itemId),
+      );
+      if (item) {
+        toast.info(`${item.menuItem.name} eliminado del carrito`, {
+          duration: 2000,
+        });
+      }
       return;
     }
 
     setCartItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, quantity } : item)),
+      prev.map((item) =>
+        item.menuItem.id === itemId ? { ...item, quantity } : item,
+      ),
     );
   };
 
-  const removeFromCart = (itemId) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
+  const removeFromCart = (itemId: string) => {
+    const item = cartItems.find((item) => item.menuItem.id === itemId);
+    setCartItems((prev) => prev.filter((item) => item.menuItem.id !== itemId));
+    if (item) {
+      toast.info(`${item.menuItem.name} eliminado del carrito`, {
+        duration: 2000,
+      });
+    }
   };
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
     if (!customerName.trim() || cartItems.length === 0) {
-      alert("Por favor ingresa tu nombre y agrega productos al carrito");
+      toast.error("Por favor ingresa tu nombre y agrega productos al carrito", {
+        description: "Todos los campos marcados con * son obligatorios",
+        duration: 4000,
+      });
       return;
     }
 
-    // Simulate order placement
-    console.log("Pedido realizado:", {
-      customerName: customerName.trim(),
-      tableNumber: tableNumber.trim() || null,
-      items: cartItems,
-      total: cartTotal,
-      timestamp: new Date().toISOString(),
+    const loadingToast = toast.loading("Realizando pedido...", {
+      description: "Enviando tu pedido al sistema",
     });
 
-    alert(
-      `¡Pedido realizado con éxito!\nTotal: ${formatPrice(cartTotal)}\nCliente: ${customerName}`,
-    );
+    try {
+      await addOrder({
+        customerName: customerName.trim(),
+        tableNumber: tableNumber.trim() || undefined,
+        items: cartItems,
+        total: cartTotal,
+      });
 
-    // Reset form
-    setCartItems([]);
-    setCustomerName("");
-    setTableNumber("");
-    setIsCartOpen(false);
+      setCartItems([]);
+      setCustomerName("");
+      setTableNumber("");
+      setIsCartOpen(false);
+
+      toast.dismiss(loadingToast);
+      toast.success("¡Pedido realizado con éxito!", {
+        description: `Total: ${formatPrice(cartTotal)} - El personal de cocina ha sido notificado`,
+        duration: 5000,
+      });
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Error al realizar el pedido", {
+        description: "Por favor inténtalo de nuevo",
+        duration: 4000,
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div
+            className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold"
+            style={{ backgroundColor: "#FF7518" }}
+          >
+            🍽️
+          </div>
+          <div
+            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4"
+            style={{ borderColor: "#FF7518" }}
+          ></div>
+          <p className="text-gray-600">Cargando menú desde Firebase...</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Conectando con base de datos
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-2xl">⚠️</span>
+          </div>
+          <h2 className="text-xl font-bold text-red-600 mb-2">
+            Error de Conexión
+          </h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: "#FF7518" }}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -160,7 +204,10 @@ function CustomerMenu() {
               <h1 className="text-2xl font-bold text-gray-900">
                 Viejo Sabroso
               </h1>
-              <p className="text-sm text-gray-600">Auténtica comida mexicana</p>
+              <p className="text-sm text-gray-600">
+                Auténtica comida mexicana - {menuItems.length} productos
+                disponibles
+              </p>
             </div>
 
             <button
@@ -183,63 +230,104 @@ function CustomerMenu() {
       {/* Category Tabs */}
       <div className="bg-white border-b px-4 py-3">
         <div className="flex gap-2 overflow-x-auto">
-          {categories.map((category) => (
-            <button
-              key={category.key}
-              onClick={() => setSelectedCategory(category.key)}
-              className={`whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-md transition-colors ${
-                selectedCategory === category.key
-                  ? "text-white"
-                  : "border border-gray-300 text-gray-700 hover:bg-gray-50"
-              }`}
-              style={
-                selectedCategory === category.key
-                  ? { backgroundColor: "#FF7518" }
-                  : {}
-              }
-            >
-              {category.label}
-            </button>
-          ))}
+          {categories.map((category) => {
+            const categoryCount = menuItems.filter(
+              (item) => item.category === category.key,
+            ).length;
+            return (
+              <button
+                key={category.key}
+                onClick={() => setSelectedCategory(category.key)}
+                className={`whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-md transition-colors ${
+                  selectedCategory === category.key
+                    ? "text-white"
+                    : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+                style={
+                  selectedCategory === category.key
+                    ? { backgroundColor: "#FF7518" }
+                    : {}
+                }
+              >
+                {category.label} ({categoryCount})
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Menu Items */}
       <main className="p-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-transform hover:scale-105"
-            >
-              <div className="p-4 space-y-3">
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-lg leading-tight">
-                    {item.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
+        {filteredItems.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">🍽️</span>
+            </div>
+            <p className="text-gray-500 mb-4">
+              {menuItems.length === 0
+                ? "No hay productos en el menú. Ve al panel de administración para agregar productos."
+                : "No hay productos disponibles en esta categoría"}
+            </p>
+            {menuItems.length === 0 && (
+              <a
+                href="/admin-menu"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
+                style={{ backgroundColor: "#FF7518" }}
+              >
+                <span className="text-lg">⚙️</span>
+                Ir a Administración
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-transform hover:scale-105"
+              >
+                {item.imageUrl && (
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
 
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold">
-                    {formatPrice(item.price)}
-                  </span>
+                <div className="p-4 space-y-3">
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-lg leading-tight">
+                      {item.name}
+                    </h3>
+                    {item.description && (
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
 
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="h-10 w-10 rounded-full p-0 flex-shrink-0 flex items-center justify-center text-white transition-colors hover:opacity-90"
-                    style={{ backgroundColor: "#FF7518" }}
-                    aria-label={`Agregar ${item.name} al carrito`}
-                  >
-                    <Plus className="h-5 w-5" />
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold">
+                      {formatPrice(item.price)}
+                    </span>
+
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="h-10 w-10 rounded-full p-0 flex-shrink-0 flex items-center justify-center text-white transition-colors hover:opacity-90"
+                      style={{ backgroundColor: "#FF7518" }}
+                      aria-label={`Agregar ${item.name} al carrito`}
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Cart Modal */}
@@ -269,20 +357,25 @@ function CustomerMenu() {
                   <div className="max-h-60 overflow-y-auto p-4 space-y-3">
                     {cartItems.map((item) => (
                       <div
-                        key={item.id}
+                        key={item.menuItem.id}
                         className="flex items-center gap-3 py-2"
                       >
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium truncate">{item.name}</h4>
+                          <h4 className="font-medium truncate">
+                            {item.menuItem.name}
+                          </h4>
                           <p className="text-sm text-gray-600">
-                            {formatPrice(item.price)}
+                            {formatPrice(item.menuItem.price)}
                           </p>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() =>
-                              updateCartQuantity(item.id, item.quantity - 1)
+                              updateCartQuantity(
+                                item.menuItem.id,
+                                item.quantity - 1,
+                              )
                             }
                             className="h-8 w-8 p-0 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50"
                             disabled={item.quantity <= 1}
@@ -296,7 +389,10 @@ function CustomerMenu() {
 
                           <button
                             onClick={() =>
-                              updateCartQuantity(item.id, item.quantity + 1)
+                              updateCartQuantity(
+                                item.menuItem.id,
+                                item.quantity + 1,
+                              )
                             }
                             className="h-8 w-8 p-0 border border-gray-300 rounded flex items-center justify-center hover:bg-gray-50"
                           >
@@ -304,7 +400,7 @@ function CustomerMenu() {
                           </button>
 
                           <button
-                            onClick={() => removeFromCart(item.id)}
+                            onClick={() => removeFromCart(item.menuItem.id)}
                             className="h-8 w-8 p-0 flex items-center justify-center text-red-600 hover:text-red-700"
                           >
                             ✕
