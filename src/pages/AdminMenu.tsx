@@ -4,6 +4,7 @@ import { useRealtimeMenuItems } from "../hooks/useRealtimeMenuItems";
 import { addMenuItem, updateMenuItem, deleteMenuItem } from "../lib/firestore";
 import { MenuItem } from "../types";
 import { toast } from "sonner";
+import { DevTools } from "../components/DevTools";
 
 function AdminMenu() {
   const { menuItems, loading, error } = useRealtimeMenuItems();
@@ -120,6 +121,7 @@ function AdminMenu() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <DevTools />
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-4 py-4">
