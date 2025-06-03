@@ -21,6 +21,22 @@ function CustomerMenu() {
     }).format(price);
   };
 
+  // Function to get placeholder image based on category and item name
+  const getPlaceholderImage = (item: MenuItem) => {
+    if (item.imageUrl) return item.imageUrl;
+
+    // Generate placeholder images based on category and name
+    const seed = item.name.toLowerCase().replace(/\s+/g, "-");
+
+    if (item.category === "comida") {
+      return `https://picsum.photos/seed/${seed}-food/200/200`;
+    } else if (item.category === "bebidas") {
+      return `https://picsum.photos/seed/${seed}-drink/200/200`;
+    } else {
+      return `https://picsum.photos/seed/${seed}-dessert/200/200`;
+    }
+  };
+
   const addToCart = (menuItem: MenuItem) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find(
@@ -225,31 +241,57 @@ function CustomerMenu() {
             getItemsByCategory(activeCategory).map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg shadow-sm border p-4"
+                className="bg-white rounded-lg shadow-sm border overflow-hidden"
               >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {item.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {item.description}
-                    </p>
-                    <div
-                      className="text-xl font-bold"
-                      style={{ color: "#FF7518" }}
-                    >
-                      {formatPrice(item.price)}
+                <div className="flex h-24">
+                  {/* Content Section */}
+                  <div className="flex-1 p-4 flex flex-col justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
+                        {item.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div
+                        className="text-xl font-bold"
+                        style={{ color: "#FF7518" }}
+                      >
+                        {formatPrice(item.price)}
+                      </div>
+                      <button
+                        onClick={() => addToCart(item)}
+                        className="p-2 rounded-full text-white transition-colors hover:opacity-90 flex-shrink-0"
+                        style={{ backgroundColor: "#FF7518" }}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="ml-4 p-2 rounded-full text-white transition-colors hover:opacity-90"
-                    style={{ backgroundColor: "#FF7518" }}
-                  >
-                    <Plus className="h-5 w-5" />
-                  </button>
+                  {/* Image Section */}
+                  <div className="w-24 h-24 flex-shrink-0">
+                    <img
+                      src={getPlaceholderImage(item)}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to a solid color background with emoji if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center text-2xl" style="background-color: rgba(255, 117, 24, 0.1)">
+                              ${item.category === "comida" ? "🍽️" : item.category === "bebidas" ? "🥤" : "🍰"}
+                            </div>
+                          `;
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             ))
