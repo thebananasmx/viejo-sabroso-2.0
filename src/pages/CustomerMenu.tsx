@@ -243,54 +243,56 @@ function CustomerMenu() {
                 key={item.id}
                 className="bg-white rounded-lg shadow-sm border overflow-hidden"
               >
-                <div className="flex h-24">
-                  {/* Image Section - Now on the left */}
-                  <div className="w-24 h-24 flex-shrink-0">
-                    <img
-                      src={getPlaceholderImage(item)}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to a solid color background with emoji if image fails to load
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = `
-                            <div class="w-full h-full flex items-center justify-center text-2xl" style="background-color: rgba(255, 117, 24, 0.1)">
-                              ${item.category === "comida" ? "🍽️" : item.category === "bebidas" ? "🥤" : "🍰"}
-                            </div>
-                          `;
-                        }
-                      }}
-                    />
+                <div className="grid grid-cols-12 gap-4 p-4 min-h-[80px] items-center">
+                  {/* Columna 1: Imagen (3 columnas) */}
+                  <div className="col-span-3">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                      <img
+                        src={getPlaceholderImage(item)}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to a solid color background with emoji if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `
+                              <div class="w-full h-full flex items-center justify-center text-lg rounded-lg" style="background-color: rgba(255, 117, 24, 0.1)">
+                                ${item.category === "comida" ? "🍽️" : item.category === "bebidas" ? "🥤" : "🍰"}
+                              </div>
+                            `;
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  {/* Content Section - Now on the right with more space */}
-                  <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
-                        {item.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                        {item.description}
-                      </p>
+                  {/* Columna 2: Nombre y Descripción (6 columnas) */}
+                  <div className="col-span-6">
+                    <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-1">
+                      {item.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  {/* Columna 3: Precio y Botón (3 columnas) */}
+                  <div className="col-span-3 flex flex-col items-end gap-2">
+                    <div
+                      className="text-lg font-bold text-right"
+                      style={{ color: "#FF7518" }}
+                    >
+                      {formatPrice(item.price)}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div
-                        className="text-xl font-bold"
-                        style={{ color: "#FF7518" }}
-                      >
-                        {formatPrice(item.price)}
-                      </div>
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="p-2 rounded-full text-white transition-colors hover:opacity-90 flex-shrink-0"
-                        style={{ backgroundColor: "#FF7518" }}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="w-8 h-8 rounded-full text-white transition-colors hover:opacity-90 flex items-center justify-center"
+                      style={{ backgroundColor: "#FF7518" }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </div>
