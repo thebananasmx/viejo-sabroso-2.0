@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Settings } from "lucide-react";
 import { useRealtimeMenuItems } from "../hooks/useRealtimeMenuItems";
 import { addMenuItem, updateMenuItem, deleteMenuItem } from "../lib/firestore";
 import { MenuItem } from "../types";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 function AdminMenu() {
   const { menuItems, loading, error } = useRealtimeMenuItems();
