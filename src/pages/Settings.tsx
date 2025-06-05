@@ -418,53 +418,36 @@ const Settings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Icono del Restaurante</Label>
-                  <ImageUpload
-                    currentImage={formData.headerIcon}
-                    currentFileName={formData.headerIconFileName}
-                    onImageUploaded={handleIconUploaded}
-                    onImageRemoved={handleIconRemoved}
-                    label="Icono Principal"
-                    description="PNG, JPG o SVG hasta 5MB (recomendado: 64x64px)"
-                    folder="header-icons"
-                    maxWidth={80}
-                    maxHeight={80}
-                  />
-                  <p className="text-sm text-gray-500">
-                    Icono que aparece en el encabezado junto al nombre del
-                    restaurante
-                  </p>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label htmlFor="headerTitle">Título Principal</Label>
+                  <Label htmlFor="favicon">Favicon</Label>
                   <Input
-                    id="headerTitle"
-                    value={formData.headerTitle}
+                    id="favicon"
+                    type="url"
+                    value={formData.favicon}
                     onChange={(e) =>
-                      handleInputChange("headerTitle", e.target.value)
+                      handleInputChange("favicon", e.target.value)
                     }
-                    placeholder="Ej: Viejo Sabroso"
+                    placeholder="/favicon.ico"
                   />
                   <p className="text-sm text-gray-500">
-                    Este es el nombre principal de tu restaurante
+                    Icono pequeño que aparece en la pestaña del navegador
+                    (recomendado: 16x16px o 32x32px)
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="headerSubtitle">Subtítulo</Label>
+                  <Label htmlFor="webClip">Icono de Apple (Web Clip)</Label>
                   <Input
-                    id="headerSubtitle"
-                    value={formData.headerSubtitle}
+                    id="webClip"
+                    type="url"
+                    value={formData.webClip}
                     onChange={(e) =>
-                      handleInputChange("headerSubtitle", e.target.value)
+                      handleInputChange("webClip", e.target.value)
                     }
-                    placeholder="Ej: Auténtica comida mexicana"
+                    placeholder="/apple-touch-icon.png"
                   />
                   <p className="text-sm text-gray-500">
-                    Descripción breve que aparece debajo del título
+                    Icono que aparece cuando agregan tu sitio a la pantalla de
+                    inicio en iOS (recomendado: 180x180px)
                   </p>
                 </div>
 
