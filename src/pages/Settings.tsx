@@ -22,6 +22,7 @@ import { ArrowLeft, Save, Eye, Palette, Globe, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ImageUpload from "../components/ImageUpload";
+import StorageDebug from "../components/StorageDebug";
 
 const Settings: React.FC = () => {
   const { settings, updateSettings, loading } = useSettings();
@@ -188,8 +189,9 @@ const Settings: React.FC = () => {
                   </p>
                 </div>
 
-                <Separator />
+                <StorageDebug />
 
+                <Separator />
                 <div className="space-y-2">
                   <Label htmlFor="headerTitle">Título Principal</Label>
                   <Input
