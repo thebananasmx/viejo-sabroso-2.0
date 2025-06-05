@@ -165,25 +165,16 @@ function CustomerMenu() {
                 className="p-2 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
               >
-                {settings.headerIcon?.startsWith("http") ? (
+                {settings.headerIcon?.startsWith('http') ? (
                   <img
                     src={settings.headerIcon}
                     alt="Icono del restaurante"
-                    className="w-8 h-8 object-contain"
+                    className="w-8 h-8 object-contain sm:w-8 sm:h-8 max-sm:w-full max-sm:flex-grow"
                   />
                 ) : (
-                  <span className="text-2xl">
-                    {settings.headerIcon || "🍽️"}
-                  </span>
+                  <span className="text-2xl">{settings.headerIcon || '🍽️'}</span>
                 )}
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {settings.headerTitle}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {settings.headerSubtitle}
-                </p>
               </div>
             </div>
 
@@ -265,14 +256,14 @@ function CustomerMenu() {
                 </div>
 
                 {/* Column 3: Price/Action (25%) */}
-                <div className="col-span-3 text-right">
+                <div className="col-span-3 text-right max-sm:flex max-sm:flex-col">
                   <div className="font-bold text-lg text-gray-900 mb-2">
                     {formatPrice(item.price)}
                   </div>
                   <button
                     onClick={() => addToCart(item)}
                     disabled={!item.available}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed max-sm:ml-auto max-sm:justify-center max-sm:items-center"
                     style={{
                       backgroundColor: item.available ? "#FF7518" : "#9CA3AF",
                     }}
