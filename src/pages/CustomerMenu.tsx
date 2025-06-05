@@ -15,6 +15,8 @@ function CustomerMenu() {
   const [activeCategory, setActiveCategory] =
     useState<MenuItem["category"]>("comida");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [tableNumber, setTableNumber] = useState("");
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-MX", {
@@ -94,23 +96,25 @@ function CustomerMenu() {
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return;
 
-    const customerName = prompt("¿Cuál es tu nombre?");
-    if (!customerName) return;
-
-    const tableNumber = prompt("¿Número de mesa? (opcional)") || undefined;
+    if (!customerName.trim()) {
+      toast.error("Por favor ingresa tu nombre");
+      return;
+    }
 
     setIsPlacingOrder(true);
 
     try {
       await addOrder({
-        customerName,
-        tableNumber,
+        customerName: customerName.trim(),
+        tableNumber: tableNumber.trim() || undefined,
         items: cart,
         total: getCartTotal(),
       });
 
       setCart([]);
       setShowCart(false);
+      setCustomerName("");
+      setTableNumber("");
       toast.success("¡Orden enviada exitosamente!");
     } catch (error) {
       console.error("Error placing order:", error);
@@ -297,8 +301,8 @@ function CustomerMenu() {
 
       {/* Cart Modal */}
       {showCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center">
-          <div className="bg-white w-full max-w-md h-3/4 rounded-t-lg flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md max-h-[90vh] rounded-lg flex flex-col">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Carrito</h2>
@@ -357,21 +361,66 @@ function CustomerMenu() {
             </div>
 
             {cart.length > 0 && (
-              <div className="p-4 border-t">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-lg font-bold">Total:</span>
-                  <span className="text-xl font-bold">
-                    {formatPrice(getCartTotal())}
-                  </span>
+              <div className="p-4 border-t space-y-4">
+                {/* Customer Information */}
+                <div className="space-y-3">
+                  <div>
+                    <label
+                      htmlFor="customerName"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Nombre *
+                    </label>
+                    <input
+                      id="customerName"
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Ingresa tu nombre"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="tableNumber"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Número de Mesa (opcional)
+                    </label>
+                    <input
+                      id="tableNumber"
+                      type="text"
+                      value={tableNumber}
+                      onChange={(e) => setTableNumber(e.target.value)}
+                      placeholder="Ej: Mesa 5"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={isPlacingOrder}
-                  className="w-full py-3 text-white rounded-lg font-medium transition-opacity disabled:opacity-50"
-                  style={{ backgroundColor: "#FF7518" }}
-                >
-                  {isPlacingOrder ? "Enviando..." : "Realizar Pedido"}
-                </button>
+
+                {/* Total and Order Button */}
+                <div className="pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-lg font-bold">Total:</span>
+                    <span className="text-xl font-bold">
+                      {formatPrice(getCartTotal())}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handlePlaceOrder}
+                    disabled={isPlacingOrder || !customerName.trim()}
+                    className="w-full py-3 text-white rounded-lg font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: "#FF7518" }}
+                  >
+                    {isPlacingOrder ? "Enviando..." : "Realizar Pedido"}
+                  </button>
+                  {!customerName.trim() && (
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Ingresa tu nombre para continuar
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
