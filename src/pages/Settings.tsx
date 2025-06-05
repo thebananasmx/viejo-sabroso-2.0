@@ -40,6 +40,22 @@ const Settings: React.FC = () => {
     }));
   };
 
+  const handleIconUploaded = (url: string, fileName: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      headerIcon: url,
+      headerIconFileName: fileName,
+    }));
+  };
+
+  const handleIconRemoved = () => {
+    setFormData((prev) => ({
+      ...prev,
+      headerIcon: "🍽️", // Reset to default emoji
+      headerIconFileName: undefined,
+    }));
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -184,14 +200,33 @@ const Settings: React.FC = () => {
                 {/* Preview */}
                 <div className="space-y-2">
                   <Label>Vista Previa</Label>
-                  <div className="border rounded-lg p-4 bg-gradient-to-r from-orange-500 to-orange-600">
-                    <div className="text-center text-white">
-                      <h1 className="text-3xl font-bold mb-2">
-                        {formData.headerTitle}
-                      </h1>
-                      <p className="text-orange-100">
-                        {formData.headerSubtitle}
-                      </p>
+                  <div className="border rounded-lg p-4 bg-white">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="p-2 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
+                      >
+                        {formData.headerIcon?.startsWith("http") ||
+                        formData.headerIcon?.startsWith("data:") ? (
+                          <img
+                            src={formData.headerIcon}
+                            alt="Icono"
+                            className="w-8 h-8 object-contain"
+                          />
+                        ) : (
+                          <span className="text-2xl">
+                            {formData.headerIcon}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                          {formData.headerTitle}
+                        </h1>
+                        <p className="text-sm text-gray-600">
+                          {formData.headerSubtitle}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -380,36 +415,53 @@ const Settings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="favicon">Favicon</Label>
-                  <Input
-                    id="favicon"
-                    type="url"
-                    value={formData.favicon}
-                    onChange={(e) =>
-                      handleInputChange("favicon", e.target.value)
-                    }
-                    placeholder="/favicon.ico"
+                  <Label>Icono del Restaurante</Label>
+                  <ImageUpload
+                    currentImage={formData.headerIcon}
+                    currentFileName={formData.headerIconFileName}
+                    onImageUploaded={handleIconUploaded}
+                    onImageRemoved={handleIconRemoved}
+                    label="Icono Principal"
+                    description="PNG, JPG o SVG hasta 5MB (recomendado: 64x64px)"
+                    folder="header-icons"
+                    maxWidth={80}
+                    maxHeight={80}
                   />
                   <p className="text-sm text-gray-500">
-                    Icono pequeño que aparece en la pestaña del navegador
-                    (recomendado: 16x16px o 32x32px)
+                    Icono que aparece en el encabezado junto al nombre del
+                    restaurante
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label htmlFor="headerTitle">Título Principal</Label>
+                  <Input
+                    id="headerTitle"
+                    value={formData.headerTitle}
+                    onChange={(e) =>
+                      handleInputChange("headerTitle", e.target.value)
+                    }
+                    placeholder="Ej: Viejo Sabroso"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Este es el nombre principal de tu restaurante
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="webClip">Icono de Apple (Web Clip)</Label>
+                  <Label htmlFor="headerSubtitle">Subtítulo</Label>
                   <Input
-                    id="webClip"
-                    type="url"
-                    value={formData.webClip}
+                    id="headerSubtitle"
+                    value={formData.headerSubtitle}
                     onChange={(e) =>
-                      handleInputChange("webClip", e.target.value)
+                      handleInputChange("headerSubtitle", e.target.value)
                     }
-                    placeholder="/apple-touch-icon.png"
+                    placeholder="Ej: Auténtica comida mexicana"
                   />
                   <p className="text-sm text-gray-500">
-                    Icono que aparece cuando agregan tu sitio a la pantalla de
-                    inicio en iOS (recomendado: 180x180px)
+                    Descripción breve que aparece debajo del título
                   </p>
                 </div>
 
