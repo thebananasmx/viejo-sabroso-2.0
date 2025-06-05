@@ -21,6 +21,7 @@ import { Separator } from "../components/ui/separator";
 import { ArrowLeft, Save, Eye, Palette, Globe, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import ImageUpload from "../components/ImageUpload";
 
 const Settings: React.FC = () => {
   const { settings, updateSettings, loading } = useSettings();
