@@ -271,14 +271,14 @@ function CustomerMenu() {
                 </div>
 
                 {/* Column 3: Price/Action (25%) */}
-                <div className="col-span-3 text-right max-sm:flex max-sm:flex-col">
+                <div className="col-span-3 text-right max-lg:flex max-lg:flex-col">
                   <div className="font-bold text-lg text-gray-900 mb-2">
                     {formatPrice(item.price)}
                   </div>
                   <button
                     onClick={() => addToCart(item)}
                     disabled={!item.available}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed max-sm:ml-auto max-sm:justify-center max-sm:items-center"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed max-lg:ml-auto"
                     style={{
                       backgroundColor: item.available ? "#FF7518" : "#9CA3AF",
                     }}
