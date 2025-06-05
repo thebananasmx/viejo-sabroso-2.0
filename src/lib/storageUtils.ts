@@ -15,7 +15,19 @@ export const uploadImage = async (
   file: File,
   folder: string = "images",
 ): Promise<UploadResult> => {
+  console.log("Starting image upload...", {
+    fileName: file.name,
+    fileSize: file.size,
+    fileType: file.type,
+    folder,
+  });
+
   try {
+    // Check if storage is configured
+    if (!storage) {
+      throw new Error("Firebase Storage no está configurado correctamente");
+    }
+
     // Validate file type
     const allowedTypes = [
       "image/png",
@@ -41,21 +53,41 @@ export const uploadImage = async (
     const fileExtension = file.name.split(".").pop()?.toLowerCase() || "png";
     const fileName = `${folder}/${timestamp}_${randomSuffix}.${fileExtension}`;
 
+    console.log("Generated filename:", fileName);
+
     // Create storage reference
     const storageRef = ref(storage, fileName);
+    console.log("Storage reference created");
 
     // Upload file
+    console.log("Starting upload to Firebase Storage...");
     const snapshot = await uploadBytes(storageRef, file);
+    console.log("Upload completed, getting download URL...");
 
     // Get download URL
     const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log("Download URL obtained:", downloadURL);
 
     return {
       url: downloadURL,
       fileName: fileName,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error uploading image:", error);
+
+    // More specific error messages
+    if (error.code === "storage/unauthorized") {
+      throw new Error(
+        "Sin permisos para subir archivos. Verifica las reglas de Firebase Storage.",
+      );
+    }
+    if (error.code === "storage/network-request-failed") {
+      throw new Error("Error de conexión. Verifica tu conexión a internet.");
+    }
+    if (error.code === "storage/quota-exceeded") {
+      throw new Error("Cuota de almacenamiento excedida.");
+    }
+
     throw error;
   }
 };
