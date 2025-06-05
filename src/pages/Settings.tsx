@@ -57,22 +57,6 @@ const Settings: React.FC = () => {
     }));
   };
 
-  const handleIconUploaded = (url: string, fileName: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      headerIcon: url,
-      headerIconFileName: fileName,
-    }));
-  };
-
-  const handleIconRemoved = () => {
-    setFormData((prev) => ({
-      ...prev,
-      headerIcon: "🍽️", // Reset to default emoji
-      headerIconFileName: undefined,
-    }));
-  };
-
   const handleSave = async () => {
     try {
       setSaving(true);
