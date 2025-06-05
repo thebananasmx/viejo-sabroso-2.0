@@ -175,9 +175,11 @@ function CustomerMenu() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Viejo Sabroso
+                  {settings.headerTitle}
                 </h1>
-                <p className="text-sm text-gray-600">Summerween 25</p>
+                <p className="text-sm text-gray-600">
+                  {settings.headerSubtitle}
+                </p>
               </div>
             </div>
 
