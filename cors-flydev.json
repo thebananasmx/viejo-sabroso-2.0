@@ -1,0 +1,22 @@
+[
+  {
+    "origin": [
+      "https://b1f5216062f947e49aa2c9a89eea18c5-e4d97d75f71846858b3a6b065.fly.dev",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Access-Control-Allow-Origin",
+      "x-goog-resumable",
+      "Authorization",
+      "Content-Length",
+      "User-Agent",
+      "x-goog-upload-protocol",
+      "x-goog-upload-command"
+    ]
+  }
+]

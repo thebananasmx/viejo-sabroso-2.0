@@ -21,8 +21,6 @@ import { Separator } from "../components/ui/separator";
 import { ArrowLeft, Save, Eye, Palette, Globe, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import ImageUpload from "../components/ImageUpload";
-import StorageDebug from "../components/StorageDebug";
 
 const Settings: React.FC = () => {
   const { settings, updateSettings, loading } = useSettings();
@@ -39,22 +37,6 @@ const Settings: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
-
-  const handleIconUploaded = (url: string, fileName: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      headerIcon: url,
-      headerIconFileName: fileName,
-    }));
-  };
-
-  const handleIconRemoved = () => {
-    setFormData((prev) => ({
-      ...prev,
-      headerIcon: "🍽️", // Reset to default emoji
-      headerIconFileName: undefined,
     }));
   };
 
@@ -171,25 +153,20 @@ const Settings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Icono del Restaurante</Label>
-                  <ImageUpload
-                    currentImage={formData.headerIcon}
-                    currentFileName={formData.headerIconFileName}
-                    onImageUploaded={handleIconUploaded}
-                    onImageRemoved={handleIconRemoved}
-                    label="Icono Principal"
-                    description="PNG, JPG o SVG hasta 5MB (recomendado: 64x64px)"
-                    folder="header-icons"
-                    maxWidth={80}
-                    maxHeight={80}
+                  <Label htmlFor="headerIcon">Icono del Restaurante</Label>
+                  <Input
+                    id="headerIcon"
+                    value={formData.headerIcon}
+                    onChange={(e) =>
+                      handleInputChange("headerIcon", e.target.value)
+                    }
+                    placeholder="🍽️ o https://ejemplo.com/icono.png"
                   />
                   <p className="text-sm text-gray-500">
-                    Icono que aparece en el encabezado junto al nombre del
-                    restaurante
+                    Usa un emoji (🍽️) o URL de imagen
+                    (https://ejemplo.com/icono.png)
                   </p>
                 </div>
-
-                <StorageDebug />
 
                 <Separator />
                 <div className="space-y-2">

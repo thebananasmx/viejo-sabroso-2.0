@@ -12,8 +12,7 @@ export interface AppSettings {
   // Header settings
   headerTitle: string;
   headerSubtitle: string;
-  headerIcon: string; // URL of the uploaded icon
-  headerIconFileName?: string; // Firebase Storage filename for deletion
+  headerIcon: string; // URL of the icon (emoji or image URL)
 
   // Page metadata
   pageTitle: string;
@@ -36,8 +35,7 @@ export interface AppSettings {
 const defaultSettings: AppSettings = {
   headerTitle: "Viejo Sabroso",
   headerSubtitle: "Summerween 25",
-  headerIcon: "🍽️", // Default emoji, will be replaced by uploaded image
-  headerIconFileName: undefined,
+  headerIcon: "🍽️", // Default emoji, can be replaced by image URL
   pageTitle: "Viejo Sabroso - Auténtica Comida Mexicana",
   pageDescription:
     "Disfruta de la auténtica comida mexicana en Viejo Sabroso. Ordena en línea y disfruta de nuestros platillos tradicionales.",
@@ -133,7 +131,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     } catch (err: any) {
       console.error("Error updating settings:", err);
       const errorMessage = err.message || err.code || "Error desconocido";
-      toast.error(`Error al guardar la configuraci��n: ${errorMessage}`);
+      toast.error(`Error al guardar la configuración: ${errorMessage}`);
       throw err;
     }
   };
