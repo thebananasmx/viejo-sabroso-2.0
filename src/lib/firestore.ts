@@ -5,6 +5,8 @@ import {
   updateDoc,
   deleteDoc,
   getDocs,
+  getDoc,
+  setDoc,
   onSnapshot,
   query,
   orderBy,
@@ -271,5 +273,31 @@ export const getOrdersByStatus = async (
   } catch (error) {
     console.error("Error getting orders by status:", error);
     return [];
+  }
+};
+
+// App Settings functions
+export const getAppSettings = async () => {
+  try {
+    const settingsDoc = doc(db, "appSettings", "main");
+    const settingsSnap = await getDoc(settingsDoc);
+
+    if (settingsSnap.exists()) {
+      return settingsSnap.data();
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting app settings:", error);
+    throw error;
+  }
+};
+
+export const updateAppSettings = async (settings: any) => {
+  try {
+    const settingsDoc = doc(db, "appSettings", "main");
+    await setDoc(settingsDoc, settings, { merge: true });
+  } catch (error) {
+    console.error("Error updating app settings:", error);
+    throw error;
   }
 };
