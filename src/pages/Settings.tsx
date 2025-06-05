@@ -210,8 +210,7 @@ const Settings: React.FC = () => {
                         className="p-2 rounded-full flex items-center justify-center"
                         style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
                       >
-                        {formData.headerIcon?.startsWith("http") ||
-                        formData.headerIcon?.startsWith("data:") ? (
+                        {formData.headerIcon?.startsWith("http") ? (
                           <img
                             src={formData.headerIcon}
                             alt="Icono"
@@ -219,7 +218,7 @@ const Settings: React.FC = () => {
                           />
                         ) : (
                           <span className="text-2xl">
-                            {formData.headerIcon}
+                            {formData.headerIcon || "🍽️"}
                           </span>
                         )}
                       </div>
