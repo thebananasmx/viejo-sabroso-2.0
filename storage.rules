@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow read access to all files
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+    
+    // Allow write access to header icons
+    match /header-icons/{allPaths=**} {
+      allow write: if true;
+    }
+    
+    // Allow write access to general images
+    match /images/{allPaths=**} {
+      allow write: if true;
+    }
+  }
+}

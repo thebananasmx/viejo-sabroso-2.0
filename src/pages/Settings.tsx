@@ -60,9 +60,12 @@ const Settings: React.FC = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
+      console.log("Attempting to save settings:", formData);
       await updateSettings(formData);
-    } catch (error) {
+      console.log("Settings saved successfully");
+    } catch (error: any) {
       console.error("Error saving settings:", error);
+      toast.error(`Error al guardar: ${error.message || error}`);
     } finally {
       setSaving(false);
     }
