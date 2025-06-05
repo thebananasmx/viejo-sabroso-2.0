@@ -165,16 +165,25 @@ function CustomerMenu() {
                 className="p-2 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
               >
-                {settings.headerIcon?.startsWith('http') ? (
+                {settings.headerIcon?.startsWith("http") ? (
                   <img
                     src={settings.headerIcon}
                     alt="Icono del restaurante"
                     className="w-8 h-8 object-contain sm:w-8 sm:h-8 max-sm:w-full max-sm:flex-grow"
                   />
                 ) : (
-                  <span className="text-2xl">{settings.headerIcon || '🍽️'}</span>
+                  <span className="text-2xl">
+                    {settings.headerIcon || "🍽️"}
+                  </span>
                 )}
               </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {settings.headerTitle}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {settings.headerSubtitle}
+                </p>
               </div>
             </div>
 
