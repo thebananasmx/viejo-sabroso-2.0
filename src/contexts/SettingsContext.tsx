@@ -110,6 +110,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     try {
       const updatedSettings = { ...settings, ...newSettings };
 
+      console.log("Updating settings:", updatedSettings);
+
       // Update Firebase
       await updateAppSettings(updatedSettings);
 
@@ -117,9 +119,10 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
       setSettings(updatedSettings);
 
       toast.success("Configuración guardada exitosamente");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error updating settings:", err);
-      toast.error("Error al guardar la configuración");
+      const errorMessage = err.message || err.code || "Error desconocido";
+      toast.error(`Error al guardar la configuración: ${errorMessage}`);
       throw err;
     }
   };
