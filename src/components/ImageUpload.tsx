@@ -46,25 +46,33 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const uploadFile = async (file: File) => {
+    console.log("ImageUpload: Starting file upload process...");
     try {
       setUploading(true);
 
+      console.log("ImageUpload: Upload state set to true");
+
       // Delete previous image if exists
       if (currentFileName) {
+        console.log("ImageUpload: Deleting previous image:", currentFileName);
         await deleteImage(currentFileName);
+        console.log("ImageUpload: Previous image deleted");
       }
 
       // Upload new image
+      console.log("ImageUpload: Starting image upload...");
       const result = await uploadImage(file, folder);
+      console.log("ImageUpload: Image uploaded successfully:", result);
 
       // Call parent callback
       onImageUploaded(result.url, result.fileName);
 
       toast.success("Imagen cargada exitosamente");
     } catch (error: any) {
-      console.error("Error uploading image:", error);
+      console.error("ImageUpload: Error uploading image:", error);
       toast.error(error.message || "Error al cargar la imagen");
     } finally {
+      console.log("ImageUpload: Setting upload state to false");
       setUploading(false);
     }
   };
