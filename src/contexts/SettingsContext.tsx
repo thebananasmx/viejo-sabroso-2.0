@@ -110,19 +110,30 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     try {
       const updatedSettings = { ...settings, ...newSettings };
 
-      console.log("Updating settings:", updatedSettings);
+      // Clean undefined values for local state too
+      const cleanedSettings = Object.entries(updatedSettings).reduce(
+        (acc, [key, value]) => {
+          if (value !== undefined) {
+            acc[key as keyof AppSettings] = value;
+          }
+          return acc;
+        },
+        {} as AppSettings,
+      );
+
+      console.log("Updating settings:", cleanedSettings);
 
       // Update Firebase
-      await updateAppSettings(updatedSettings);
+      await updateAppSettings(cleanedSettings);
 
       // Update local state
-      setSettings(updatedSettings);
+      setSettings({ ...settings, ...cleanedSettings });
 
       toast.success("Configuración guardada exitosamente");
     } catch (err: any) {
       console.error("Error updating settings:", err);
       const errorMessage = err.message || err.code || "Error desconocido";
-      toast.error(`Error al guardar la configuración: ${errorMessage}`);
+      toast.error(`Error al guardar la configuraci��n: ${errorMessage}`);
       throw err;
     }
   };
