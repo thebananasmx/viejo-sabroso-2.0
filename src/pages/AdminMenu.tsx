@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 function AdminMenu() {
   const { menuItems, loading, error } = useRealtimeMenuItems();
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<
     MenuItem["category"] | "todos"
   >("todos");
@@ -158,14 +159,23 @@ function AdminMenu() {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
-              style={{ backgroundColor: "#FF7518" }}
-            >
-              <Plus className="h-4 w-4" />
-              Agregar
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate("/settings")}
+                className="flex items-center gap-2 px-4 py-2 rounded border border-gray-300 text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <Settings className="h-4 w-4" />
+                Configuración
+              </button>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded text-white transition-colors hover:opacity-90"
+                style={{ backgroundColor: "#FF7518" }}
+              >
+                <Plus className="h-4 w-4" />
+                Agregar
+              </button>
+            </div>
           </div>
         </div>
       </header>
