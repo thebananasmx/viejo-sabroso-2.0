@@ -298,15 +298,12 @@ export const updateAppSettings = async (settings: any) => {
     const settingsDoc = doc(db, "appSettings", "main");
 
     // Filter out undefined values to prevent Firebase errors
-    const cleanedSettings = Object.entries(settings).reduce(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = value;
-        }
-        return acc;
-      },
-      {} as any,
-    );
+    const cleanedSettings: any = {};
+    for (const [key, value] of Object.entries(settings)) {
+      if (value !== undefined) {
+        cleanedSettings[key] = value;
+      }
+    }
 
     console.log("Saving cleaned settings:", cleanedSettings);
 
