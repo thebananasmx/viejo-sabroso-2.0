@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { MenuItem, Order, CartItem, OrderStatus } from "../types";
+import { removeUndefinedValues } from "./dataUtils";
 
 // Collections
 const MENU_COLLECTION = "menu_items";
