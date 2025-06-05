@@ -183,6 +183,27 @@ const Settings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
+                  <Label>Icono del Restaurante</Label>
+                  <ImageUpload
+                    currentImage={formData.headerIcon}
+                    currentFileName={formData.headerIconFileName}
+                    onImageUploaded={handleIconUploaded}
+                    onImageRemoved={handleIconRemoved}
+                    label="Icono Principal"
+                    description="PNG, JPG o SVG hasta 5MB (recomendado: 64x64px)"
+                    folder="header-icons"
+                    maxWidth={80}
+                    maxHeight={80}
+                  />
+                  <p className="text-sm text-gray-500">
+                    Icono que aparece en el encabezado junto al nombre del
+                    restaurante
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
                   <Label htmlFor="headerTitle">Título Principal</Label>
                   <Input
                     id="headerTitle"
