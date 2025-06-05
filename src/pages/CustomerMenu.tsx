@@ -165,20 +165,22 @@ function CustomerMenu() {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div
-                className="p-2 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
-              >
+              <div className="flex items-center justify-center">
                 {settings.headerIcon?.startsWith("http") ? (
                   <img
                     src={settings.headerIcon}
                     alt="Icono del restaurante"
-                    className="w-8 h-8 object-contain sm:w-8 sm:h-8 max-sm:w-full max-sm:flex-grow"
+                    className="w-12 h-12 object-contain rounded-lg"
                   />
                 ) : (
-                  <span className="text-2xl">
-                    {settings.headerIcon || "🍽️"}
-                  </span>
+                  <div
+                    className="p-2 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
+                  >
+                    <span className="text-2xl">
+                      {settings.headerIcon || "🍽️"}
+                    </span>
+                  </div>
                 )}
               </div>
               <div>
@@ -243,23 +245,30 @@ function CustomerMenu() {
             >
               <div className="grid grid-cols-12 gap-4 p-4 min-h-[80px] items-center">
                 {/* Column 1: Image (25%) */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center">
-                {settings.headerIcon?.startsWith('http') ? (
-                  <img
-                    src={settings.headerIcon}
-                    alt="Icono del restaurante"
-                    className="w-12 h-12 object-contain rounded-lg"
-                  />
-                ) : (
-                  <div
-                    className="p-2 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
-                  >
-                    <span className="text-2xl">{settings.headerIcon || '🍽️'}</span>
+                <div className="col-span-3">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden">
+                    <img
+                      src={getPlaceholderImage(item)}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                )}
-              </div>
+                </div>
+
+                {/* Column 2: Info (50%) */}
+                <div className="col-span-6">
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    {item.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {item.description}
+                  </p>
+                  {!item.available && (
+                    <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-700 rounded mt-1">
+                      No disponible
+                    </span>
+                  )}
+                </div>
 
                 {/* Column 3: Price/Action (25%) */}
                 <div className="col-span-3 text-right max-sm:flex max-sm:flex-col">
