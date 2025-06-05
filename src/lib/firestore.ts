@@ -295,7 +295,21 @@ export const getAppSettings = async () => {
 export const updateAppSettings = async (settings: any) => {
   try {
     const settingsDoc = doc(db, "appSettings", "main");
-    await setDoc(settingsDoc, settings, { merge: true });
+
+    // Filter out undefined values to prevent Firebase errors
+    const cleanedSettings = Object.entries(settings).reduce(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as any,
+    );
+
+    console.log("Saving cleaned settings:", cleanedSettings);
+
+    await setDoc(settingsDoc, cleanedSettings, { merge: true });
   } catch (error) {
     console.error("Error updating app settings:", error);
     throw error;
