@@ -59,21 +59,25 @@ function CustomerMenu() {
     toast.success(`${menuItem.name} agregado al carrito`);
   };
 
-  const updateCartItemQuantity = (menuItemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      setCart((prevCart) =>
-        prevCart.filter((item) => item.menuItem.id !== menuItemId),
-      );
-      toast.info("Producto eliminado del carrito");
-    } else {
-      setCart((prevCart) =>
-        prevCart.map((item) =>
-          item.menuItem.id === menuItemId
-            ? { ...item, quantity: newQuantity }
-            : item,
-        ),
-      );
+  const removeFromCart = (menuItemId: string) => {
+    setCart((prevCart) =>
+      prevCart.filter((item) => item.menuItem.id !== menuItemId),
+    );
+  };
+
+  const updateQuantity = (menuItemId: string, newQuantity: number) => {
+    if (newQuantity === 0) {
+      removeFromCart(menuItemId);
+      return;
     }
+
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.menuItem.id === menuItemId
+          ? { ...item, quantity: newQuantity }
+          : item,
+      ),
+    );
   };
 
   const getCartTotal = () => {
@@ -87,40 +91,30 @@ function CustomerMenu() {
     return cart.reduce((total, item) => total + item.quantity, 0);
   };
 
-  const clearCart = () => {
-    setCart([]);
-    setShowCart(false);
-    toast.success("Carrito vaciado");
-  };
+  const handlePlaceOrder = async () => {
+    if (cart.length === 0) return;
 
-  const placeOrder = async (customerName: string, tableNumber?: string) => {
-    if (cart.length === 0) {
-      toast.error("El carrito está vacío");
-      return;
-    }
+    const customerName = prompt("¿Cuál es tu nombre?");
+    if (!customerName) return;
 
-    if (!customerName.trim()) {
-      toast.error("Por favor ingresa un nombre");
-      return;
-    }
+    const tableNumber = prompt("¿Número de mesa? (opcional)") || undefined;
 
     setIsPlacingOrder(true);
 
     try {
-      const orderId = await addOrder({
-        customerName: customerName.trim(),
-        tableNumber: tableNumber?.trim(),
+      await addOrder({
+        customerName,
+        tableNumber,
         items: cart,
         total: getCartTotal(),
       });
 
-      toast.success(
-        "¡Pedido realizado con éxito! Se está preparando en cocina.",
-      );
-      clearCart();
+      setCart([]);
+      setShowCart(false);
+      toast.success("¡Orden enviada exitosamente!");
     } catch (error) {
       console.error("Error placing order:", error);
-      toast.error("Error al realizar el pedido. Inténtalo de nuevo.");
+      toast.error("Error al enviar la orden");
     } finally {
       setIsPlacingOrder(false);
     }
@@ -171,18 +165,28 @@ function CustomerMenu() {
                 className="p-2 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: "rgba(255, 117, 24, 0.1)" }}
               >
-                {settings.headerIcon?.startsWith('http') ? (
+                {settings.headerIcon?.startsWith("http") ? (
                   <img
                     src={settings.headerIcon}
                     alt="Icono del restaurante"
                     className="w-8 h-8 object-contain"
                   />
                 ) : (
-                  <span className="text-2xl">{settings.headerIcon || '🍽️'}</span>
+                  <span className="text-2xl">
+                    {settings.headerIcon || "🍽️"}
+                  </span>
                 )}
               </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {settings.headerTitle}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {settings.headerSubtitle}
+                </p>
               </div>
             </div>
+
             <button
               onClick={() => setShowCart(true)}
               className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -201,25 +205,24 @@ function CustomerMenu() {
         </div>
       </header>
 
-      {/* Category Tabs */}
+      {/* Category Filter */}
       <div className="bg-white border-b px-4 py-3">
         <div className="flex gap-2 overflow-x-auto">
           {categories.map((category) => (
             <button
               key={category.key}
               onClick={() => setActiveCategory(category.key)}
-              className={`whitespace-nowrap flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeCategory === category.key
                   ? "text-white"
-                  : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
-              style={
-                activeCategory === category.key
-                  ? { backgroundColor: "#FF7518" }
-                  : {}
-              }
+              style={{
+                backgroundColor:
+                  activeCategory === category.key ? "#FF7518" : undefined,
+              }}
             >
-              <span>{category.icon}</span>
+              <span className="mr-2">{category.icon}</span>
               {category.label}
             </button>
           ))}
@@ -227,92 +230,78 @@ function CustomerMenu() {
       </div>
 
       {/* Menu Items */}
-      <main className="p-4 pb-20">
-        <div className="grid gap-4">
-          {getItemsByCategory(activeCategory).length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🍽️</div>
-              <p className="text-gray-500 mb-4">
-                No hay productos disponibles en esta categoría
-              </p>
-              <p className="text-sm text-gray-400">
-                Los productos aparecerán aquí cuando estén disponibles
-              </p>
-            </div>
-          ) : (
-            getItemsByCategory(activeCategory).map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-lg shadow-sm border overflow-hidden"
-              >
-                <div className="grid grid-cols-12 gap-4 p-4 min-h-[80px] items-center">
-                  {/* Columna 1: Imagen (3 columnas) */}
-                  <div className="col-span-3">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={getPlaceholderImage(item)}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback to a solid color background with emoji if image fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = "none";
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.innerHTML = `
-                              <div class="w-full h-full flex items-center justify-center text-lg rounded-lg" style="background-color: rgba(255, 117, 24, 0.1)">
-                                ${item.category === "comida" ? "🍽️" : item.category === "bebidas" ? "🥤" : "🍰"}
-                              </div>
-                            `;
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Columna 2: Nombre y Descripción (6 columnas) */}
-                  <div className="col-span-6">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-1">
-                      {item.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  {/* Columna 3: Precio y Botón (3 columnas) */}
-                  <div className="col-span-3 flex flex-col items-end gap-2">
-                    <div
-                      className="text-lg font-bold text-right"
-                      style={{ color: "#FF7518" }}
-                    >
-                      {formatPrice(item.price)}
-                    </div>
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="w-8 h-8 rounded-full text-white transition-colors hover:opacity-90 flex items-center justify-center"
-                      style={{ backgroundColor: "#FF7518" }}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+      <div className="p-4 pb-20">
+        <div className="space-y-4">
+          {getItemsByCategory(activeCategory).map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-lg border shadow-sm overflow-hidden"
+            >
+              <div className="grid grid-cols-12 gap-4 p-4 min-h-[80px] items-center">
+                {/* Column 1: Image (25%) */}
+                <div className="col-span-3">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden">
+                    <img
+                      src={getPlaceholderImage(item)}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </main>
 
-      {/* Shopping Cart Modal */}
+                {/* Column 2: Info (50%) */}
+                <div className="col-span-6">
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    {item.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {item.description}
+                  </p>
+                  {!item.available && (
+                    <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-700 rounded mt-1">
+                      No disponible
+                    </span>
+                  )}
+                </div>
+
+                {/* Column 3: Price/Action (25%) */}
+                <div className="col-span-3 text-right">
+                  <div className="font-bold text-lg text-gray-900 mb-2">
+                    {formatPrice(item.price)}
+                  </div>
+                  <button
+                    onClick={() => addToCart(item)}
+                    disabled={!item.available}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: item.available ? "#FF7518" : "#9CA3AF",
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {getItemsByCategory(activeCategory).length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">🍽️</div>
+            <p className="text-gray-600">
+              No hay productos disponibles en esta categoría
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Cart Modal */}
       {showCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
-            {/* Cart Header */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center">
+          <div className="bg-white w-full max-w-md h-3/4 rounded-t-lg flex flex-col">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
-                  Carrito de Compras
-                </h2>
+                <h2 className="text-xl font-bold">Carrito</h2>
                 <button
                   onClick={() => setShowCart(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -322,61 +311,44 @@ function CustomerMenu() {
               </div>
             </div>
 
-            {/* Cart Content */}
-            <div className="p-4 max-h-96 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-4">
               {cart.length === 0 ? (
                 <div className="text-center py-8">
-                  <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Tu carrito está vacío</p>
+                  <div className="text-gray-400 text-6xl mb-4">🛒</div>
+                  <p className="text-gray-600">Tu carrito está vacío</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {cart.map((item) => (
                     <div
                       key={item.menuItem.id}
-                      className="flex items-center justify-between"
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                     >
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">
-                          {item.menuItem.name}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {formatPrice(item.menuItem.price)} c/u
+                        <h4 className="font-medium">{item.menuItem.name}</h4>
+                        <p className="text-gray-600">
+                          {formatPrice(item.menuItem.price)}
                         </p>
                       </div>
-
-                      <div className="flex items-center gap-2 ml-4">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() =>
-                            updateCartItemQuantity(
-                              item.menuItem.id,
-                              item.quantity - 1,
-                            )
+                            updateQuantity(item.menuItem.id, item.quantity - 1)
                           }
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
                         >
                           -
                         </button>
-                        <span className="w-8 text-center font-medium">
-                          {item.quantity}
-                        </span>
+                        <span className="w-8 text-center">{item.quantity}</span>
                         <button
                           onClick={() =>
-                            updateCartItemQuantity(
-                              item.menuItem.id,
-                              item.quantity + 1,
-                            )
+                            updateQuantity(item.menuItem.id, item.quantity + 1)
                           }
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                          style={{ backgroundColor: "#FF7518" }}
                         >
                           +
                         </button>
-                      </div>
-
-                      <div className="ml-4 text-right">
-                        <div className="font-medium text-gray-900">
-                          {formatPrice(item.menuItem.price * item.quantity)}
-                        </div>
                       </div>
                     </div>
                   ))}
@@ -384,111 +356,28 @@ function CustomerMenu() {
               )}
             </div>
 
-            {/* Cart Footer */}
             {cart.length > 0 && (
               <div className="p-4 border-t">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold text-gray-900">
-                    Total:
-                  </span>
-                  <span
-                    className="text-xl font-bold"
-                    style={{ color: "#FF7518" }}
-                  >
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-lg font-bold">Total:</span>
+                  <span className="text-xl font-bold">
                     {formatPrice(getCartTotal())}
                   </span>
                 </div>
-
-                <OrderForm
-                  onSubmit={placeOrder}
-                  isPlacing={isPlacingOrder}
-                  onCancel={() => setShowCart(false)}
-                />
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={isPlacingOrder}
+                  className="w-full py-3 text-white rounded-lg font-medium transition-opacity disabled:opacity-50"
+                  style={{ backgroundColor: "#FF7518" }}
+                >
+                  {isPlacingOrder ? "Enviando..." : "Realizar Pedido"}
+                </button>
               </div>
             )}
           </div>
         </div>
       )}
     </div>
-  );
-}
-
-// Order Form Component
-function OrderForm({
-  onSubmit,
-  isPlacing,
-  onCancel,
-}: {
-  onSubmit: (name: string, table?: string) => void;
-  isPlacing: boolean;
-  onCancel: () => void;
-}) {
-  const [customerName, setCustomerName] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(customerName, tableNumber);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label
-          htmlFor="customerName"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Nombre del cliente *
-        </label>
-        <input
-          type="text"
-          id="customerName"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-          placeholder="Ingresa tu nombre"
-          required
-          disabled={isPlacing}
-        />
-      </div>
-
-      <div>
-        <label
-          htmlFor="tableNumber"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Número de mesa (opcional)
-        </label>
-        <input
-          type="text"
-          id="tableNumber"
-          value={tableNumber}
-          onChange={(e) => setTableNumber(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-          placeholder="Ej: 5"
-          disabled={isPlacing}
-        />
-      </div>
-
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPlacing}
-          className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors disabled:opacity-50"
-        >
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={isPlacing || !customerName.trim()}
-          className="flex-1 py-2 px-4 text-white rounded transition-colors hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: "#FF7518" }}
-        >
-          {isPlacing ? "Realizando..." : "Realizar Pedido"}
-        </button>
-      </div>
-    </form>
   );
 }
 
