@@ -12,6 +12,8 @@ export interface AppSettings {
   // Header settings
   headerTitle: string;
   headerSubtitle: string;
+  headerIcon: string; // URL of the uploaded icon
+  headerIconFileName?: string; // Firebase Storage filename for deletion
 
   // Page metadata
   pageTitle: string;
@@ -34,6 +36,8 @@ export interface AppSettings {
 const defaultSettings: AppSettings = {
   headerTitle: "Viejo Sabroso",
   headerSubtitle: "Summerween 25",
+  headerIcon: "🍽️", // Default emoji, will be replaced by uploaded image
+  headerIconFileName: undefined,
   pageTitle: "Viejo Sabroso - Auténtica Comida Mexicana",
   pageDescription:
     "Disfruta de la auténtica comida mexicana en Viejo Sabroso. Ordena en línea y disfruta de nuestros platillos tradicionales.",
