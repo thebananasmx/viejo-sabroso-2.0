@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
 import { useRealtimeMenuItems } from "../hooks/useRealtimeMenuItems";
+import { useSettings } from "../contexts/SettingsContext";
 import { addOrder } from "../lib/firestore";
 import { CartItem, MenuItem } from "../types";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 function CustomerMenu() {
   const { menuItems, availableItems, getItemsByCategory, loading, error } =
     useRealtimeMenuItems();
+  const { settings } = useSettings();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [activeCategory, setActiveCategory] =
